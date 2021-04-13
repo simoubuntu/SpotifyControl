@@ -1,9 +1,39 @@
 import web
 import os
+import configparser
+import requests
+import datetime
+import functions as fn
 
 import board
 import digitalio
 import adafruit_character_lcd.character_lcd as characterlcd
+
+class tokens:
+    def __init__(self, refreshTk, base64Tk):
+        self.refreshTk = refreshTk
+        self.base64Tk = base64Tk
+        self.authTk = None
+        self.authExp = None
+        self.update()
+
+    def update(self):
+        req = requests.post('https://accounts.spotify.com/api/token', data = {'grant_type':'refresh_token','refresh_token':self.refreshTk}, headers={'Authorization': f'Basic {self.base64Tk}'})
+
+        self.authTk = req.json()['access_token']
+        expiresIn = req.json()['expires_in']
+        self.authExp = datetime.datetime.now() + datetime.timedelta(seconds=(expiresIn-60))
+
+
+    def check(self):
+        if datetime.datetime.now() > self.authExp:
+            self.update()
+        else:
+            pass
+
+settings = configparser.ConfigParser()
+settings.read('settings.conf')
+tkn = tokens(settings['Spotify']['refreshTk'],settings['Spotify']['base64Tk'])
 
 # Modify this if you have a different sized character LCD
 lcd_columns = 16
@@ -29,7 +59,9 @@ lcd.message = 'web.py\ninitialized'
 urls = (
   '/', 'index',
   '/next', 'next',
-  '/previous', 'previous'
+  '/previous', 'previous',
+  '/play', 'play',
+  '/pause', 'pause'
 )
 
 class index:
@@ -39,11 +71,14 @@ class index:
 class next:
     def GET(self):
         global lcd
-
+        global tkn
+        
         lcd.clear()
         lcd.message = 'Next song!'
 
-        return 'Next song!'
+        req = requests.post('https://api.spotify.com/v1/me/player/next', data = {'grant_type':'refresh_token','refresh_token':tkn.refreshTk}, headers={'Accept': 'application/json', 'Content-Type': 'application/json', 'Authorization': f'Bearer {tkn.authTk}'})
+
+        return req.text
     
 class previous:
     def GET(self):
