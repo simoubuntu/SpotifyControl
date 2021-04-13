@@ -4,9 +4,13 @@ import configparser
 import requests
 import datetime
 
+from time import sleep
+import RPi.GPIO as GPIO
+
 import board
 import digitalio
 import adafruit_character_lcd.character_lcd as characterlcd
+
 
 class tokens:
     def __init__(self, refreshTk, base64Tk):
@@ -35,6 +39,14 @@ class tokens:
 settings = configparser.ConfigParser()
 settings.read('settings.conf')
 tkn = tokens(settings['Spotify']['refreshTk'],settings['Spotify']['base64Tk'])
+
+receivedPin = 26
+shufflePin = 16
+
+GPIO.setwarnings(False)
+GPIO.setmode(GPIO.BCM)
+GPIO.setup(shufflePin, GPIO.OUT)
+GPIO.setup(receivedPin, GPIO.OUT)
 
 # Modify this if you have a different sized character LCD
 lcd_columns = 16
@@ -78,7 +90,9 @@ class player:
     def GET(self):
         global lcd
         global tkn
-        
+
+        GPIO.output(receivedPin, GPIO.HIGH)
+
         lcd.clear()
         lcd.message = self.message
 
@@ -88,6 +102,9 @@ class player:
             req = requests.put(f'https://api.spotify.com/v1/me/player/{self.command}', headers={'Accept': 'application/json', 'Content-Type': 'application/json', 'Authorization': f'Bearer {tkn.authTk}'})
 
         print(req)
+
+        # sleep(0.1)
+        GPIO.output(receivedPin, GPIO.LOW)
 
         return self.message
 
@@ -116,5 +133,11 @@ class pause(player):
         self.method = 'PUT'
 
 if __name__ == '__main__':
+    GPIO.output(shufflePin, GPIO.HIGH)
+    GPIO.output(receivedPin, GPIO.HIGH)
+    sleep(1)
+    GPIO.output(shufflePin, GPIO.LOW)
+    GPIO.output(receivedPin, GPIO.LOW)
+
     app = web.application(urls, globals())
     app.run()
