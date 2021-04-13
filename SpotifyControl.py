@@ -74,7 +74,8 @@ urls = (
   '/next', 'next',
   '/previous', 'previous',
   '/play', 'play',
-  '/pause', 'pause'
+  '/pause', 'pause',
+  '/shuffle', 'shuffle'
 )
 
 class index:
@@ -90,6 +91,7 @@ class player:
     def GET(self):
         global lcd
         global tkn
+        global receivedPin
 
         GPIO.output(receivedPin, GPIO.HIGH)
 
@@ -103,7 +105,6 @@ class player:
 
         print(req)
 
-        # sleep(0.1)
         GPIO.output(receivedPin, GPIO.LOW)
 
         return self.message
@@ -131,6 +132,33 @@ class pause(player):
         self.command = 'pause'
         self.message = 'Pause'
         self.method = 'PUT'
+
+class shuffle:
+    def GET(self):
+        global lcd
+        global tkn
+        global receivedPin
+
+        GPIO.output(receivedPin, GPIO.HIGH)
+
+        lcd.clear()
+        lcd.message = 'Shuffle'
+
+        state = requests.get('https://api.spotify.com/v1/me/player', headers={'Accept': 'application/json', 'Content-Type': 'application/json', 'Authorization': f'Bearer {tkn.authTk}'})
+        shufS = state.json()['shuffle_state']
+
+        if shufS:
+            st = 'false'
+        else:
+            st = 'true'
+
+        req = requests.put(f'https://api.spotify.com/v1/me/player/shuffle?state={st}', headers={'Accept': 'application/json', 'Content-Type': 'application/json', 'Authorization': f'Bearer {tkn.authTk}'})
+
+        print(req)
+
+        GPIO.output(receivedPin, GPIO.LOW)
+
+        return 'Shuffle '+ st
 
 if __name__ == '__main__':
     GPIO.output(shufflePin, GPIO.HIGH)
