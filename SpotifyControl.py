@@ -83,9 +83,9 @@ class player:
         lcd.message = self.message
 
         if self.method == 'POST':
-            req = requests.post(f'https://api.spotify.com/v1/me/player/{self.command}', data = {'grant_type':'refresh_token','refresh_token':tkn.refreshTk}, headers={'Accept': 'application/json', 'Content-Type': 'application/json', 'Authorization': f'Bearer {tkn.authTk}'})
+            req = requests.post(f'https://api.spotify.com/v1/me/player/{self.command}', headers={'Accept': 'application/json', 'Content-Type': 'application/json', 'Authorization': f'Bearer {tkn.authTk}'})
         elif self.method == 'PUT':
-            req = requests.put(f'https://api.spotify.com/v1/me/player/{self.command}', data = {'grant_type':'refresh_token','refresh_token':tkn.refreshTk}, headers={'Accept': 'application/json', 'Content-Type': 'application/json', 'Authorization': f'Bearer {tkn.authTk}'})
+            req = requests.put(f'https://api.spotify.com/v1/me/player/{self.command}', headers={'Accept': 'application/json', 'Content-Type': 'application/json', 'Authorization': f'Bearer {tkn.authTk}'})
 
         print(req)
 
