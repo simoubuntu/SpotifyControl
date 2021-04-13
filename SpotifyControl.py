@@ -3,7 +3,6 @@ import os
 import configparser
 import requests
 import datetime
-import functions as fn
 
 import board
 import digitalio
@@ -30,6 +29,8 @@ class tokens:
             self.update()
         else:
             pass
+
+        return self.authExp - datetime.datetime.now()
 
 settings = configparser.ConfigParser()
 settings.read('settings.conf')
@@ -68,26 +69,51 @@ class index:
     def GET(self):
         return "SpotifyControl ver. 0.0"
 
-class next:
+class player:
+    def __init__(self):
+        self.command = None
+        self.message = None
+        self.method = None
+
     def GET(self):
         global lcd
         global tkn
         
         lcd.clear()
-        lcd.message = 'Next song!'
+        lcd.message = self.message
 
-        req = requests.post('https://api.spotify.com/v1/me/player/next', data = {'grant_type':'refresh_token','refresh_token':tkn.refreshTk}, headers={'Accept': 'application/json', 'Content-Type': 'application/json', 'Authorization': f'Bearer {tkn.authTk}'})
+        if self.method == 'POST':
+            req = requests.post(f'https://api.spotify.com/v1/me/player/{self.command}', data = {'grant_type':'refresh_token','refresh_token':tkn.refreshTk}, headers={'Accept': 'application/json', 'Content-Type': 'application/json', 'Authorization': f'Bearer {tkn.authTk}'})
+        elif self.method == 'PUT':
+            req = requests.put(f'https://api.spotify.com/v1/me/player/{self.command}', data = {'grant_type':'refresh_token','refresh_token':tkn.refreshTk}, headers={'Accept': 'application/json', 'Content-Type': 'application/json', 'Authorization': f'Bearer {tkn.authTk}'})
 
-        return req.text
-    
-class previous:
-    def GET(self):
-        global lcd
+        print(req)
 
-        lcd.clear()
-        lcd.message = 'Previous song!'
+        return self.message
 
-        return 'Previous song!'
+class next(player):
+    def __init__(self):
+        self.command = 'next'
+        self.message = 'Next song'
+        self.method = 'POST'
+
+class previous(player):
+    def __init__(self):
+        self.command = 'previous'
+        self.message = 'Previous song'
+        self.method = 'POST'
+
+class play(player):
+    def __init__(self):
+        self.command = 'play'
+        self.message = 'Play'
+        self.method = 'PUT'
+
+class pause(player):
+    def __init__(self):
+        self.command = 'pause'
+        self.message = 'Pause'
+        self.method = 'PUT'
 
 if __name__ == '__main__':
     app = web.application(urls, globals())
