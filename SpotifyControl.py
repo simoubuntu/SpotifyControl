@@ -31,6 +31,7 @@ class tokens:
     def check(self):
         if datetime.datetime.now() > self.authExp:
             self.update()
+            print('Token updated')
         else:
             pass
 
@@ -38,7 +39,7 @@ class tokens:
 
 settings = configparser.ConfigParser()
 settings.read('settings.conf')
-tkn = tokens(settings['Spotify']['refreshTk'],settings['Spotify']['base64Tk'])
+tkn = tokens(settings['Spotify']['refreshTk'], settings['Spotify']['base64Tk'])
 
 receivedPin = 26
 shufflePin = 16
@@ -75,7 +76,8 @@ urls = (
   '/previous', 'previous',
   '/play', 'play',
   '/pause', 'pause',
-  '/shuffle', 'shuffle'
+  '/shuffle', 'shuffle',
+  '/transferhere', 'transferHere'
 )
 
 class index:
@@ -98,12 +100,15 @@ class player:
         lcd.clear()
         lcd.message = self.message
 
+        tkn.check()
+
         if self.method == 'POST':
             req = requests.post(f'https://api.spotify.com/v1/me/player/{self.command}', headers={'Accept': 'application/json', 'Content-Type': 'application/json', 'Authorization': f'Bearer {tkn.authTk}'})
         elif self.method == 'PUT':
             req = requests.put(f'https://api.spotify.com/v1/me/player/{self.command}', headers={'Accept': 'application/json', 'Content-Type': 'application/json', 'Authorization': f'Bearer {tkn.authTk}'})
 
         print(req)
+        print(f'  with tk: {tkn.authTk[0:10]}, exp: {tkn.authExp}')
 
         GPIO.output(receivedPin, GPIO.LOW)
 
@@ -144,10 +149,12 @@ class shuffle:
         lcd.clear()
         lcd.message = 'Shuffle'
 
-        state = requests.get('https://api.spotify.com/v1/me/player', headers={'Accept': 'application/json', 'Content-Type': 'application/json', 'Authorization': f'Bearer {tkn.authTk}'})
-        shufS = state.json()['shuffle_state']
+        tkn.check()
 
-        if shufS:
+        reply = requests.get('https://api.spotify.com/v1/me/player', headers={'Accept': 'application/json', 'Content-Type': 'application/json', 'Authorization': f'Bearer {tkn.authTk}'})
+        state = reply.json()['shuffle_state']
+
+        if state:
             st = 'false'
         else:
             st = 'true'
@@ -155,10 +162,48 @@ class shuffle:
         req = requests.put(f'https://api.spotify.com/v1/me/player/shuffle?state={st}', headers={'Accept': 'application/json', 'Content-Type': 'application/json', 'Authorization': f'Bearer {tkn.authTk}'})
 
         print(req)
+        print(f'  with tk: {tkn.authTk[0:10]}, exp: {tkn.authExp}')
 
         GPIO.output(receivedPin, GPIO.LOW)
 
         return 'Shuffle '+ st
+
+class transferHere:
+    def GET(self):
+        global lcd
+        global tkn
+        global receivedPin
+        global settings
+
+        GPIO.output(receivedPin, GPIO.HIGH)
+
+        lcd.clear()
+        lcd.message = 'Transfer here'
+
+        tkn.check()
+
+        devName = settings['Device']['name']
+        devId = None
+
+        reply = requests.get('https://api.spotify.com/v1/me/player/devices', headers={'Accept': 'application/json', 'Content-Type': 'application/json', 'Authorization': f'Bearer {tkn.authTk}'})
+
+        for elem in reply.json()['devices']:
+            if elem['name'] == devName:
+                devId = elem['id']
+
+        if devId == None:
+            return 'Name Not found'
+
+        data = '{\"device_ids\":[\"'+str(devId)+'\"]}'
+
+        req = requests.put(f'https://api.spotify.com/v1/me/player', data=data, headers={'Accept': 'application/json', 'Content-Type': 'application/json', 'Authorization': f'Bearer {tkn.authTk}'})
+
+        print(req)
+        print(f'  with tk: {tkn.authTk[0:10]}, exp: {tkn.authExp}')
+
+        GPIO.output(receivedPin, GPIO.LOW)
+
+        return 'Transfer here'
 
 if __name__ == '__main__':
     GPIO.output(shufflePin, GPIO.HIGH)
