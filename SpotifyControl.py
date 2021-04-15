@@ -77,7 +77,8 @@ urls = (
   '/play', 'play',
   '/pause', 'pause',
   '/shuffle', 'shuffle',
-  '/transferhere', 'transferHere'
+  '/transferhere', 'transferHere',
+  '/onevent', 'onEvent'
 )
 
 class index:
@@ -164,6 +165,9 @@ class shuffle:
         print(req)
         print(f'  with tk: {tkn.authTk[0:10]}, exp: {tkn.authExp}')
 
+        lcd.clear()
+        lcd.message = 'Shuffle ' + st
+
         GPIO.output(receivedPin, GPIO.LOW)
 
         return 'Shuffle '+ st
@@ -196,7 +200,7 @@ class transferHere:
 
         data = '{\"device_ids\":[\"'+str(devId)+'\"]}'
 
-        req = requests.put(f'https://api.spotify.com/v1/me/player', data=data, headers={'Accept': 'application/json', 'Content-Type': 'application/json', 'Authorization': f'Bearer {tkn.authTk}'})
+        req = requests.put('https://api.spotify.com/v1/me/player', data=data, headers={'Accept': 'application/json', 'Content-Type': 'application/json', 'Authorization': f'Bearer {tkn.authTk}'})
 
         print(req)
         print(f'  with tk: {tkn.authTk[0:10]}, exp: {tkn.authExp}')
@@ -204,6 +208,25 @@ class transferHere:
         GPIO.output(receivedPin, GPIO.LOW)
 
         return 'Transfer here'
+
+class onEvent:
+    def POST(self):
+        global tkn
+
+        trackId = web.data().decode("utf-8")
+
+        tkn.check()
+        reply = requests.get(f'https://api.spotify.com/v1/tracks/{trackId}', headers={'Accept': 'application/json', 'Content-Type': 'application/json', 'Authorization': f'Bearer {tkn.authTk}'})
+
+        json = reply.json()
+
+        title = reply.json()['name']
+        artist = reply.json()['artists'][0]['name']
+
+        lcd.clear()
+        lcd.message = f'{title}\n{artist}'
+
+        return 'onEvent'
 
 if __name__ == '__main__':
     GPIO.output(shufflePin, GPIO.HIGH)
