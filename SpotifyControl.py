@@ -85,7 +85,7 @@ urls = (
 
 class index:
     def GET(self):
-        return "SpotifyControl ver. 0.0"
+        return "SpotifyControl ver. 0.1"
 
 class player:
     def __init__(self):
@@ -98,10 +98,13 @@ class player:
         global tkn
         global receivedPin
 
+        screenList = ['next', 'previous']
+
         GPIO.output(receivedPin, GPIO.HIGH)
 
-        lcd.clear()
-        lcd.message = self.message
+        if self.command in screenList:
+            lcd.clear()
+            lcd.message = self.message
 
         tkn.check()
 
@@ -149,9 +152,6 @@ class shuffle:
 
         GPIO.output(receivedPin, GPIO.HIGH)
 
-        lcd.clear()
-        lcd.message = 'Shuffle'
-
         tkn.check()
 
         reply = requests.get('https://api.spotify.com/v1/me/player', headers={'Accept': 'application/json', 'Content-Type': 'application/json', 'Authorization': f'Bearer {tkn.authTk}'})
@@ -167,8 +167,10 @@ class shuffle:
         print(req)
         print(f'  with tk: {tkn.authTk[0:10]}, exp: {tkn.authExp}')
 
-        lcd.clear()
-        lcd.message = 'Shuffle ' + st
+        if state:
+            GPIO.output(shufflePin, GPIO.LOW)
+        else:
+            GPIO.output(shufflePin, GPIO.HIGH)
 
         GPIO.output(receivedPin, GPIO.LOW)
 
@@ -222,6 +224,15 @@ class onEvent:
         data = web.data().decode("utf-8").split(',')
         trackId = data[0]
         event = data[1]
+
+        reply = requests.get('https://api.spotify.com/v1/me/player', headers={'Accept': 'application/json', 'Content-Type': 'application/json', 'Authorization': f'Bearer {tkn.authTk}'})
+
+        shuffleState = reply.json()['shuffle_state']
+
+        if shuffleState:
+            GPIO.output(shufflePin, GPIO.HIGH)
+        else:
+            GPIO.output(shufflePin, GPIO.LOW)
 
         print(f'onEvent: {event}')
 
