@@ -42,12 +42,14 @@ settings.read('settings.conf')
 tkn = tokens(settings['Spotify']['refreshTk'], settings['Spotify']['base64Tk'])
 
 receivedPin = 26
-shufflePin = 16
+shufflePin = 19
+playingPin = 16
 
 GPIO.setwarnings(False)
 GPIO.setmode(GPIO.BCM)
 GPIO.setup(shufflePin, GPIO.OUT)
 GPIO.setup(receivedPin, GPIO.OUT)
+GPIO.setup(playingPin, GPIO.OUT)
 
 # Modify this if you have a different sized character LCD
 lcd_columns = 16
@@ -213,18 +215,30 @@ class onEvent:
     def POST(self):
         global tkn
 
-        trackId = web.data().decode("utf-8")
+        screenEvents = ['start', 'change']
+        playingEvents = ['start', 'playing']
+        stopEvents = ['paused', 'stop']
 
-        tkn.check()
-        reply = requests.get(f'https://api.spotify.com/v1/tracks/{trackId}', headers={'Accept': 'application/json', 'Content-Type': 'application/json', 'Authorization': f'Bearer {tkn.authTk}'})
+        data = web.data().decode("utf-8").split(',')
+        trackId = data[0]
+        event = data[1]
 
-        json = reply.json()
+        print(f'onEvent: {event}')
 
-        title = reply.json()['name']
-        artist = reply.json()['artists'][0]['name']
+        if event in screenEvents:
+            tkn.check()
+            reply = requests.get(f'https://api.spotify.com/v1/tracks/{trackId}', headers={'Accept': 'application/json', 'Content-Type': 'application/json', 'Authorization': f'Bearer {tkn.authTk}'})
 
-        lcd.clear()
-        lcd.message = f'{title}\n{artist}'
+            title = reply.json()['name']
+            artist = reply.json()['artists'][0]['name']
+
+            lcd.clear()
+            lcd.message = f'{title}\n{artist}'
+
+        elif event in playingEvents:
+            GPIO.output(playingPin, GPIO.HIGH)
+        elif event in stopEvents:
+            GPIO.output(playingPin, GPIO.LOW)
 
         return 'onEvent'
 
