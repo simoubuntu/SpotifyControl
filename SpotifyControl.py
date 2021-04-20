@@ -1,5 +1,6 @@
 import web
 import os
+import sys
 import configparser
 import requests
 import datetime
@@ -38,7 +39,7 @@ class tokens:
         return self.authExp - datetime.datetime.now()
 
 settings = configparser.ConfigParser()
-settings.read('settings.conf')
+settings.read(os.path.join(sys.path[0], 'settings.conf'))
 tkn = tokens(settings['Spotify']['refreshTk'], settings['Spotify']['base64Tk'])
 
 receivedPin = 26
