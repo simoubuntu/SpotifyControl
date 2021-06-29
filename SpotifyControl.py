@@ -42,8 +42,8 @@ settings = configparser.ConfigParser()
 settings.read(os.path.join(sys.path[0], 'settings.conf'))
 tkn = tokens(settings['Spotify']['refreshTk'], settings['Spotify']['base64Tk'])
 
-receivedPin = 26
-shufflePin = 19
+receivedPin = 11
+shufflePin = 9
 playingPin = 16
 
 GPIO.setwarnings(False)
@@ -63,7 +63,7 @@ lcd_en = digitalio.DigitalInOut(board.D17)
 lcd_d4 = digitalio.DigitalInOut(board.D25)
 lcd_d5 = digitalio.DigitalInOut(board.D24)
 lcd_d6 = digitalio.DigitalInOut(board.D23)
-lcd_d7 = digitalio.DigitalInOut(board.D18)
+lcd_d7 = digitalio.DigitalInOut(board.D10)
 
 # Initialise the lcd class
 lcd = characterlcd.Character_LCD_Mono(lcd_rs, lcd_en, lcd_d4, lcd_d5, lcd_d6, lcd_d7, lcd_columns, lcd_rows)
@@ -71,7 +71,7 @@ lcd = characterlcd.Character_LCD_Mono(lcd_rs, lcd_en, lcd_d4, lcd_d5, lcd_d6, lc
 # wipe LCD screen before we start
 lcd.clear()
 # combine both lines into one update to the display
-lcd.message = 'web.py\ninitialized'
+lcd.message = 'SpotifyControl\nis ready!'
 
 urls = (
   '/', 'index',
