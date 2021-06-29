@@ -81,12 +81,29 @@ urls = (
   '/pause', 'pause',
   '/shuffle', 'shuffle',
   '/transferhere', 'transferHere',
-  '/onevent', 'onEvent'
+  '/onevent', 'onEvent',
+  '/authorized', 'authorized'
 )
 
 class index:
     def GET(self):
-        return "SpotifyControl ver. 0.1"
+        global settings
+        
+        redirectUrl = settings['Device']['address'] + '/authorized'
+        clientId = settings['Spotify']['clientId']
+        changeUserUrl = f"https://accounts.spotify.com/authorize?client_id={clientId}&response_type=code&redirect_uri={redirectUrl}&scope=user-read-playback-state%20user-modify-playback-state%20playlist-modify-public%20playlist-modify-private"
+
+        body = """<html>
+            <body>
+                <h2>SpotifyControl</h2>
+                <h3>Version 0.1</h3>
+                <p>Control the playback from Spotify on your Raspberry with simple HTTP requests!</p>
+                <p>Current user: """ + "inserire nome" + """</p>
+                <button onclick="document.location='""" + changeUserUrl + """'">Change user</p>
+            </body>    
+        </html>
+        """
+        return body
 
 class player:
     def __init__(self):
@@ -253,6 +270,23 @@ class onEvent:
             GPIO.output(playingPin, GPIO.LOW)
 
         return 'onEvent'
+
+class authorized:
+    def GET(self):
+        authCode = web.input('code').code
+        base64Code = settings['Spotify']['base64Tk']
+        redirectUrl = settings['Device']['address']
+        data = '{\"grant_type\": \"authorization_code\", \"code\": ' + authCode + ', \"redirect_uri\"= ' + redirectUrl + '}'
+
+        reply = requests.get('https://accounts.spotify.com/api/token', headers={'Accept': 'application/json', 'Content-Type': 'application/json', 'Authorization': f'Basic {base64Code}'}, data=data)
+
+        try:
+            refTok = reply.json()['refresh_token']
+        except:
+            pass
+            # return 'Bad response'
+
+        return f'authcode: {authCode}</br>base64Code: {base64Code}</br>refreshToken: refTok'
 
 if __name__ == '__main__':
     GPIO.output(shufflePin, GPIO.HIGH)
