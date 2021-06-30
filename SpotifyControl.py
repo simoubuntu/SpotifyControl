@@ -12,35 +12,59 @@ import board
 import digitalio
 import adafruit_character_lcd.character_lcd as characterlcd
 
+version = 'v0.2'
 
 class tokens:
-    def __init__(self, refreshTk, base64Tk):
-        self.refreshTk = refreshTk
-        self.base64Tk = base64Tk
+    def __init__(self):
+        refTokFile = open('./SpotifyControl/refresh.tk', 'r')
+        self.refreshTk = refTokFile.readline()
+        refTokFile.close()
+
+        self.base64Tk = settings['Spotify']['base64Tk']
+
         self.authTk = None
         self.authExp = None
         self.update()
 
     def update(self):
-        req = requests.post('https://accounts.spotify.com/api/token', data = {'grant_type':'refresh_token','refresh_token':self.refreshTk}, headers={'Authorization': f'Basic {self.base64Tk}'})
+        global lcd
 
-        self.authTk = req.json()['access_token']
-        expiresIn = req.json()['expires_in']
-        self.authExp = datetime.datetime.now() + datetime.timedelta(seconds=(expiresIn-60))
+        req = requests.post('https://accounts.spotify.com/api/token', data = {'grant_type':'refresh_token','refresh_token':self.refreshTk}, headers={'Authorization': f'Basic {self.base64Tk}'})
+        try:
+            self.authTk = req.json()['access_token']
+            expiresIn = req.json()['expires_in']
+            self.authExp = datetime.datetime.now() + datetime.timedelta(seconds=(expiresIn-60))
+        except:
+            lcd.clear()
+            lcd.message = 'Error updating\ntokens'
 
 
     def check(self):
-        if datetime.datetime.now() > self.authExp:
+        try:
+            if datetime.datetime.now() > self.authExp:
+                self.update()
+                print('Token updated')
+            else:
+                pass
+        except TypeError:
             self.update()
-            print('Token updated')
-        else:
-            pass
+            print('Token updated with None')
 
         return self.authExp - datetime.datetime.now()
 
+    def changeRefreshTk(self, newRef, newAuth, expiresIn):
+        print('entro')
+        refTokFile = open('./SpotifyControl/refresh.tk', 'w')
+        refTokFile.write(newRef)
+        refTokFile.close()
+
+        self.refreshTk = newRef
+        self.authTk = newAuth
+        self.authExp = datetime.datetime.now() + datetime.timedelta(seconds=(expiresIn-60))
+        return
+
 settings = configparser.ConfigParser()
 settings.read(os.path.join(sys.path[0], 'settings.conf'))
-tkn = tokens(settings['Spotify']['refreshTk'], settings['Spotify']['base64Tk'])
 
 receivedPin = 11
 shufflePin = 9
@@ -71,7 +95,9 @@ lcd = characterlcd.Character_LCD_Mono(lcd_rs, lcd_en, lcd_d4, lcd_d5, lcd_d6, lc
 # wipe LCD screen before we start
 lcd.clear()
 # combine both lines into one update to the display
-lcd.message = 'SpotifyControl\nis ready!'
+lcd.message = 'SpotifyControl\n'+version+' is ready!'
+
+tkn = tokens()
 
 urls = (
   '/', 'index',
@@ -88,6 +114,7 @@ urls = (
 class index:
     def GET(self):
         global settings
+        global version
         
         redirectUrl = settings['Device']['address'] + '/authorized'
         clientId = settings['Spotify']['clientId']
@@ -96,7 +123,7 @@ class index:
         body = """<html>
             <body>
                 <h2>SpotifyControl</h2>
-                <h3>Version 0.1</h3>
+                <h3>Version """ + version + """</h3>
                 <p>Control the playback from Spotify on your Raspberry with simple HTTP requests!</p>
                 <p>Current user: """ + "inserire nome" + """</p>
                 <button onclick="document.location='""" + changeUserUrl + """'">Change user</p>
@@ -273,20 +300,24 @@ class onEvent:
 
 class authorized:
     def GET(self):
+        global tkn
+        global lcd
+
         authCode = web.input('code').code
         base64Code = settings['Spotify']['base64Tk']
-        redirectUrl = settings['Device']['address']
-        data = '{\"grant_type\": \"authorization_code\", \"code\": ' + authCode + ', \"redirect_uri\"= ' + redirectUrl + '}'
+        redirectUrl = settings['Device']['address'] + '/authorized'
 
-        reply = requests.get('https://accounts.spotify.com/api/token', headers={'Accept': 'application/json', 'Content-Type': 'application/json', 'Authorization': f'Basic {base64Code}'}, data=data)
+        reply = requests.post('https://accounts.spotify.com/api/token', data = {"grant_type":"authorization_code", "code":authCode, "redirect_uri":redirectUrl}, headers={'Authorization': f'Basic {base64Code}'})
 
         try:
-            refTok = reply.json()['refresh_token']
-        except:
-            pass
-            # return 'Bad response'
+            tkn.changeRefreshTk(reply.json()['refresh_token'], reply.json()['access_token'], reply.json()['expires_in'])
+        except KeyError:
+            return reply.text
 
-        return f'authcode: {authCode}</br>base64Code: {base64Code}</br>refreshToken: refTok'
+        lcd.clear()
+        lcd.message = 'Login completed!\nReady to play'
+
+        return 'Login completed'
 
 if __name__ == '__main__':
     GPIO.output(shufflePin, GPIO.HIGH)
