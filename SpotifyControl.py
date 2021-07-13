@@ -12,7 +12,7 @@ import board
 import digitalio
 import adafruit_character_lcd.character_lcd as characterlcd
 
-version = 'v0.2'
+version = 'v0.2.1'
 
 class tokens:
     def __init__(self):
@@ -108,7 +108,8 @@ urls = (
   '/shuffle', 'shuffle',
   '/transferhere', 'transferHere',
   '/onevent', 'onEvent',
-  '/authorized', 'authorized'
+  '/authorized', 'authorized',
+  '/like', 'like'
 )
 
 class index:
@@ -318,6 +319,28 @@ class authorized:
         lcd.message = 'Login completed!\nReady to play'
 
         return 'Login completed'
+
+class like:
+    def GET(self):
+        global tkn
+        global lcd
+        global settings
+
+        reply = requests.get('https://api.spotify.com/v1/me/player', headers={'Accept': 'application/json', 'Content-Type': 'application/json', 'Authorization': f'Bearer {tkn.authTk}'})
+        trackId = reply.json()['item']['uri']
+
+        playlistId = settings['Spotify']['playlistId']
+
+        reply = requests.post(f'https://api.spotify.com/v1/playlists/{playlistId}/tracks?uris={trackId}', headers={'Accept': 'application/json', 'Content-Type': 'application/json', 'Authorization': f'Bearer {tkn.authTk}'})
+
+        if reply.ok:
+            lcd.cursor_position(13,1)
+            lcd.message = ' <3'
+        else:
+            lcd.clear()
+            lcd.message = 'Track NOT added\nto favourites'
+
+
 
 if __name__ == '__main__':
     GPIO.output(shufflePin, GPIO.HIGH)
