@@ -127,7 +127,14 @@ class index:
                 <h3>Version """ + version + """</h3>
                 <p>Control the playback from Spotify on your Raspberry with simple HTTP requests!</p>
                 <p>Current user: """ + "inserire nome" + """</p>
-                <button onclick="document.location='""" + changeUserUrl + """'">Change user</p>
+                <form action='""" + changeUserUrl + """'>
+                    <input type='text' name='state'>
+                    <input type='text' name='client_id' value='""" + clientId + """' hidden>
+                    <input type='text' name='response_type' value='code' hidden>
+                    <input type='text' name='redirect_uri' value='""" + redirectUrl + """' hidden>
+                    <input type='text' name='scope' value='user-read-playback-state%20user-modify-playback-state%20playlist-modify-public%20playlist-modify-private' hidden>
+                    <input type="submit" value="Submit">
+                </form>
             </body>    
         </html>
         """
@@ -304,7 +311,8 @@ class authorized:
         global tkn
         global lcd
 
-        authCode = web.input('code').code
+        authCode = web.input().code
+        userName = web.input().state
         base64Code = settings['Spotify']['base64Tk']
         redirectUrl = settings['Device']['address'] + '/authorized'
 
@@ -318,7 +326,7 @@ class authorized:
         lcd.clear()
         lcd.message = 'Login completed!\nReady to play'
 
-        return 'Login completed'
+        return f'Login completed for {userName}'
 
 class like:
     def GET(self):
