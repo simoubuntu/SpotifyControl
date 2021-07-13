@@ -63,6 +63,39 @@ class tokens:
         self.authExp = datetime.datetime.now() + datetime.timedelta(seconds=(expiresIn-60))
         return
 
+class user:
+    def __init__(self):
+        global lcd
+        global settings
+
+        try:
+            usersFile = open('./SpotifyControl/users.db', 'r')
+
+            self.users = list()
+            
+            try:
+                curUsr = dict()
+                curUsr['name'] = usersFile.readline()
+                curUsr['refTkn'] = usersFile.readline()
+                curUsr['playlistId'] = usersFile.readline()
+
+                self.users.append(curUsr)
+
+            except:
+                return
+
+            usersFile.close()
+
+        except FileNotFoundError:
+            usersFile = open('./SpotifyControl/users.db', 'w')
+            usersFile.write(' ')
+            lcd.message = 'No users. Go to\n' + settings['Device']['address']
+
+        return
+
+
+
+
 settings = configparser.ConfigParser()
 settings.read(os.path.join(sys.path[0], 'settings.conf'))
 
@@ -98,6 +131,7 @@ lcd.clear()
 lcd.message = 'SpotifyControl\n'+version+' is ready!'
 
 tkn = tokens()
+usr = user()
 
 urls = (
   '/', 'index',
