@@ -72,17 +72,15 @@ class user:
             usersFile = open('./SpotifyControl/users.db', 'r')
 
             self.users = list()
-            
-            try:
+
+            for i in range(5):
+
                 curUsr = dict()
-                curUsr['name'] = usersFile.readline()
-                curUsr['refTkn'] = usersFile.readline()
-                curUsr['playlistId'] = usersFile.readline()
+                curUsr['name'] = usersFile.readline()[:-1]
+                curUsr['refTkn'] = usersFile.readline()[:-1]
+                curUsr['playlistId'] = usersFile.readline()[:-1]
 
                 self.users.append(curUsr)
-
-            except:
-                return
 
             usersFile.close()
 
