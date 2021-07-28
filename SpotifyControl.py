@@ -94,6 +94,17 @@ class user:
 
         return
 
+    def save(self):
+
+        usersFile = open('./SpotifyControl/users.db', 'w')
+
+        for u in self.users:
+            usersFile.write(u['name']+'\n')
+            usersFile.write(u['refTkn']+'\n')
+            usersFile.write(u['playlistId']+'\n')
+
+        return
+
     def add(self, name, refTkn, playlistId):
 
         curUsr = dict()
@@ -103,9 +114,9 @@ class user:
 
         self.users.append(curUsr)
 
+        self.save()
+
         return
-
-
 
 
 settings = configparser.ConfigParser()
@@ -371,8 +382,8 @@ class authorized:
 
         try:
             tkn.changeRefreshTk(reply.json()['refresh_token'], reply.json()['access_token'], reply.json()['expires_in'])
-            usr.add(userName, reply.json()['refresh_token'], '')
-            
+            usr.add(userName, reply.json()['refresh_token'], 'ND')
+
         except KeyError:
             return reply.text
 
