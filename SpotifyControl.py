@@ -73,12 +73,15 @@ class user:
 
             self.users = list()
 
-            for i in range(5):
+            while True:
 
                 curUsr = dict()
                 curUsr['name'] = usersFile.readline()[:-1]
                 curUsr['refTkn'] = usersFile.readline()[:-1]
                 curUsr['playlistId'] = usersFile.readline()[:-1]
+
+                if curUsr['name'] == '':
+                    break
 
                 self.users.append(curUsr)
 
@@ -88,6 +91,17 @@ class user:
             usersFile = open('./SpotifyControl/users.db', 'w')
             usersFile.write(' ')
             lcd.message = 'No users. Go to\n' + settings['Device']['address']
+
+        return
+
+    def add(self, name, refTkn, playlistId):
+
+        curUsr = dict()
+        curUsr['name'] = name
+        curUsr['refTkn'] = refTkn
+        curUsr['playlistId'] = playlistId
+
+        self.users.append(curUsr)
 
         return
 
@@ -159,14 +173,18 @@ class index:
                 <h3>Version """ + version + """</h3>
                 <p>Control the playback from Spotify on your Raspberry with simple HTTP requests!</p>
                 <p>Current user: """ + "inserire nome" + """</p>
-                <form action='""" + changeUserUrl + """'>
-                    <input type='text' name='state'>
-                    <input type='text' name='client_id' value='""" + clientId + """' hidden>
-                    <input type='text' name='response_type' value='code' hidden>
-                    <input type='text' name='redirect_uri' value='""" + redirectUrl + """' hidden>
-                    <input type='text' name='scope' value='user-read-playback-state%20user-modify-playback-state%20playlist-modify-public%20playlist-modify-private' hidden>
-                    <input type="submit" value="Submit">
-                </form>
+                <div>
+                    <h3>Add new user</h3>
+                    <form action='""" + changeUserUrl + """'>
+                        <label>User name</label>
+                        <input type='text' name='state'>
+                        <input type='text' name='client_id' value='""" + clientId + """' hidden>
+                        <input type='text' name='response_type' value='code' hidden>
+                        <input type='text' name='redirect_uri' value='""" + redirectUrl + """' hidden>
+                        <input type='text' name='scope' value='user-read-playback-state%20user-modify-playback-state%20playlist-modify-public%20playlist-modify-private' hidden>
+                        <input type="submit" value="Submit">
+                    </form>
+                </div>
             </body>    
         </html>
         """
@@ -342,6 +360,7 @@ class authorized:
     def GET(self):
         global tkn
         global lcd
+        global usr
 
         authCode = web.input().code
         userName = web.input().state
@@ -352,6 +371,8 @@ class authorized:
 
         try:
             tkn.changeRefreshTk(reply.json()['refresh_token'], reply.json()['access_token'], reply.json()['expires_in'])
+            usr.add(userName, reply.json()['refresh_token'], '')
+            
         except KeyError:
             return reply.text
 
