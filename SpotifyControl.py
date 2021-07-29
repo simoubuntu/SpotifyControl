@@ -71,6 +71,8 @@ class user:
         try:
             usersFile = open('./SpotifyControl/users.db', 'r')
 
+            self.active = int(usersFile.readline()[:-1])
+
             self.users = list()
 
             while True:
@@ -92,16 +94,23 @@ class user:
             usersFile.write(' ')
             lcd.message = 'No users. Go to\n' + settings['Device']['address']
 
+        except ValueError:
+            usersFile = open('./SpotifyControl/users.db', 'w')
+            usersFile.write(' ')
+            lcd.message = 'Bad users db. Go to\n' + settings['Device']['address']
+
         return
 
     def save(self):
 
         usersFile = open('./SpotifyControl/users.db', 'w')
 
+        usersFile.write(self.active + '\n')
+
         for u in self.users:
-            usersFile.write(u['name']+'\n')
-            usersFile.write(u['refTkn']+'\n')
-            usersFile.write(u['playlistId']+'\n')
+            usersFile.write(u['name'] + '\n')
+            usersFile.write(u['refTkn'] + '\n')
+            usersFile.write(u['playlistId'] + '\n')
 
         return
 
