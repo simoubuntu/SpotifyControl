@@ -68,12 +68,13 @@ class user:
         global lcd
         global settings
 
+        self.active = None
+        self.users = list()
+
         try:
             usersFile = open('./SpotifyControl/users.db', 'r')
 
             self.active = int(usersFile.readline()[:-1])
-
-            self.users = list()
 
             while True:
 
@@ -105,7 +106,7 @@ class user:
 
         usersFile = open('./SpotifyControl/users.db', 'w')
 
-        usersFile.write(self.active + '\n')
+        usersFile.write(str(self.active) + '\n')
 
         for u in self.users:
             usersFile.write(u['name'] + '\n')
@@ -123,9 +124,34 @@ class user:
 
         self.users.append(curUsr)
 
+        self.active = len(self.users) - 1
+
         self.save()
 
         return
+
+    def switch(self, token, target = None):
+        # The procedure automatically goes to the next user in the list. Use target variable to customize this behaviour
+
+        if target == None:
+            if (self.active + 1) == len(self.users):
+                self.active = 0
+
+            else:
+                self.active += 1
+
+        elif target not in range(len(self.users)):
+            raise IndexError
+
+        else:
+            self.active = target
+
+        token.refreshTk = self.users[self.active]['refTkn']
+        token.update()
+
+        self.save()
+
+        return self.users[self.active]['name']
 
 
 settings = configparser.ConfigParser()
@@ -175,7 +201,8 @@ urls = (
   '/transferhere', 'transferHere',
   '/onevent', 'onEvent',
   '/authorized', 'authorized',
-  '/like', 'like'
+  '/like', 'like',
+  '/switchuser', 'switchUser'
 )
 
 class index:
@@ -421,6 +448,18 @@ class like:
             lcd.clear()
             lcd.message = 'Track NOT added\nto favourites'
 
+class switchUser:
+    def GET(self):
+        global usr
+        global tkn
+        global lcd
+
+        name = usr.switch(tkn)
+
+        lcd.clear()
+        lcd.message = f'User switched to\n{name}'
+
+        return f'User switched to {name}'
 
 
 if __name__ == '__main__':
