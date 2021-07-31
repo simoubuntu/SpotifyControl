@@ -1,5 +1,6 @@
 import requests
 import datetime
+import subprocess
 
 import shared as sh
 
@@ -71,6 +72,8 @@ class user:
                 curUsr['name'] = usersFile.readline()[:-1]
                 curUsr['refTkn'] = usersFile.readline()[:-1]
                 curUsr['playlistId'] = usersFile.readline()[:-1]
+                curUsr['username'] = usersFile.readline()[:-1]
+                curUsr['devPassword'] = usersFile.readline()[:-1]
 
                 if curUsr['name'] == '':
                     break
@@ -100,9 +103,11 @@ class user:
         usersFile.write(str(self.active) + '\n')
 
         for u in self.users:
-            usersFile.write(u['name'] + '\n')
-            usersFile.write(u['refTkn'] + '\n')
-            usersFile.write(u['playlistId'] + '\n')
+            usersFile.write(str(u['name']) + '\n')
+            usersFile.write(str(u['refTkn']) + '\n')
+            usersFile.write(str(u['playlistId']) + '\n')
+            usersFile.write(str(u['username']) + '\n')
+            usersFile.write(str(u['devPassword']) + '\n')
 
         usersFile.close()
 
@@ -110,9 +115,14 @@ class user:
 
     def add(self, name, refTkn):
 
+        reply = requests.get('https://api.spotify.com/v1/me', headers={'Accept': 'application/json', 'Content-Type': 'application/json', 'Authorization': f'Bearer {sh.tkn.authTk}'})
+
         curUsr = dict()
         curUsr['name'] = name
         curUsr['refTkn'] = refTkn
+        curUsr['playlistId'] = None
+        curUsr['username'] = reply.json()['id']
+        curUsr['devPassword'] = None
 
         self.users.append(curUsr)
 
@@ -149,8 +159,23 @@ class user:
         return self.users[self.active]['name']
 
     def current(self):
-        result = dict()
-        result['name'] = self.users[self.active]['name']
-        result['refTkn'] = self.users[self.active]['refTkn']
+        result = self.users[self.active]
 
         return result
+
+class libreSpotContainer:
+    def __init__(self):
+        self.status = False
+
+        return
+    
+    def activate(self, curUsr):
+        self.instance = subprocess.Popen(["/usr/bin/librespot", "--name", f"Stereo {curUsr['name']}", "--device-type", "speaker", "--backend", "alsa", "--bitrate", "320", "--disable-audio-cache", "--enable-volume-normalisation", "--volume-ctrl", "linear", "--initial-volume", "100", "--username", curUsr['username'], "--password", curUsr['devPassword'], "--onevent", "/home/pi/SpotifyControl/onevent.sh"])
+        self.status = True
+
+        return
+    def deactivate(self):
+        self.instance.terminate()
+        self.status = False
+
+        return

@@ -98,7 +98,7 @@ class transferHere:
 
         sh.tkn.check()
 
-        devName = sh.settings['Device']['name']
+        devName = "Stereo " + sh.usr.current()['name']
         devId = None
 
         reply = requests.get('https://api.spotify.com/v1/me/player/devices', headers={'Accept': 'application/json', 'Content-Type': 'application/json', 'Authorization': f'Bearer {sh.tkn.authTk}'})
@@ -108,6 +108,7 @@ class transferHere:
                 devId = elem['id']
 
         if devId == None:
+            sh.lcd.message = 'Device not found.\nTry again!'
             return 'Name Not found'
 
         data = '{\"device_ids\":[\"'+str(devId)+'\"]}'
@@ -133,13 +134,16 @@ class onEvent:
         event = data[1]
 
         reply = requests.get('https://api.spotify.com/v1/me/player', headers={'Accept': 'application/json', 'Content-Type': 'application/json', 'Authorization': f'Bearer {sh.tkn.authTk}'})
+        try:
+            shuffleState = reply.json()['shuffle_state']
 
-        shuffleState = reply.json()['shuffle_state']
-
-        if shuffleState:
-            GPIO.output(sh.shufflePin, GPIO.HIGH)
-        else:
-            GPIO.output(sh.shufflePin, GPIO.LOW)
+            if shuffleState:
+                GPIO.output(sh.shufflePin, GPIO.HIGH)
+            else:
+                GPIO.output(sh.shufflePin, GPIO.LOW)
+                
+        except:
+            print('Error while reading shuffle status')
 
         print(f'onEvent: {event}')
 
@@ -179,8 +183,12 @@ class like:
 
 class switchUser:
     def GET(self):
+        
+        sh.librespot.deactivate()
 
         name = sh.usr.switch()
+
+        sh.librespot.activate(sh.usr.current())
 
         sh.lcd.clear()
         sh.lcd.message = f'User switched to\n{name}'

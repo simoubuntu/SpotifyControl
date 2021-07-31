@@ -39,14 +39,14 @@ class authorized:
     def GET(self):
 
         authCode = web.input().code
-        userName = web.input().state
+        name = web.input().state
         base64Code = sh.settings['Spotify']['base64Tk']
         redirectUrl = sh.settings['Device']['address'] + '/authorized'
 
         reply = requests.post('https://accounts.spotify.com/api/token', data = {"grant_type":"authorization_code", "code":authCode, "redirect_uri":redirectUrl}, headers={'Authorization': f'Basic {base64Code}'})
 
         try:
-            sh.usr.add(userName, reply.json()['refresh_token'])
+            sh.usr.add(name, reply.json()['refresh_token'])
 
         except KeyError:
             return reply.text
@@ -54,5 +54,5 @@ class authorized:
         sh.lcd.clear()
         sh.lcd.message = 'Login completed!\nReady to play'
 
-        return f'Login completed for {userName}'
+        return f'Login completed for {name}'
 

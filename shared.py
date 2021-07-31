@@ -10,7 +10,7 @@ import adafruit_character_lcd.character_lcd as characterlcd
 
 import components as cm
 
-version = 'v0.2.3'
+version = 'v0.2.4'
 
 settings = configparser.ConfigParser()
 settings.read(os.path.join(sys.path[0], 'settings.conf'))
@@ -48,3 +48,6 @@ lcd.message = 'SpotifyControl\n' + version + ' is ready!'
 
 usr = cm.user()
 tkn = cm.tokens()
+
+librespot = cm.libreSpotContainer()
+librespot.activate(usr.current())
