@@ -12,19 +12,27 @@ import board
 import digitalio
 import adafruit_character_lcd.character_lcd as characterlcd
 
-version = 'v0.2.1'
+version = 'v0.2.2'
 
 class tokens:
     def __init__(self):
-        refTokFile = open('./SpotifyControl/refresh.tk', 'r')
-        self.refreshTk = refTokFile.readline()
-        refTokFile.close()
 
+        global usr
+
+        try:
+            self.refreshTk = usr.current()['refTkn']
+        except:
+            self.refreshTk = None
+        
         self.base64Tk = settings['Spotify']['base64Tk']
 
         self.authTk = None
         self.authExp = None
-        self.update()
+
+        if self.refreshTk != None:
+            self.update()
+
+        return
 
     def update(self):
         global lcd
@@ -51,16 +59,13 @@ class tokens:
             print('Token updated with None')
 
         return self.authExp - datetime.datetime.now()
-
-    def changeRefreshTk(self, newRef, newAuth, expiresIn):
-        print('entro')
-        refTokFile = open('./SpotifyControl/refresh.tk', 'w')
-        refTokFile.write(newRef)
-        refTokFile.close()
+    
+    def change(self, newRef):
 
         self.refreshTk = newRef
-        self.authTk = newAuth
-        self.authExp = datetime.datetime.now() + datetime.timedelta(seconds=(expiresIn-60))
+
+        self.update()
+
         return
 
 class user:
@@ -93,11 +98,13 @@ class user:
         except FileNotFoundError:
             usersFile = open('./SpotifyControl/users.db', 'w')
             usersFile.write(' ')
+            usersFile.close()
             lcd.message = 'No users. Go to\n' + settings['Device']['address']
 
         except ValueError:
             usersFile = open('./SpotifyControl/users.db', 'w')
             usersFile.write(' ')
+            usersFile.close()
             lcd.message = 'Bad users db. Go to\n' + settings['Device']['address']
 
         return
@@ -113,25 +120,29 @@ class user:
             usersFile.write(u['refTkn'] + '\n')
             usersFile.write(u['playlistId'] + '\n')
 
+        usersFile.close()
+
         return
 
-    def add(self, name, refTkn, playlistId):
+    def add(self, name, refTkn):
+        global tkn
 
         curUsr = dict()
         curUsr['name'] = name
         curUsr['refTkn'] = refTkn
-        curUsr['playlistId'] = playlistId
 
         self.users.append(curUsr)
 
-        self.active = len(self.users) - 1
-
         self.save()
+
+        self.switch('last')
 
         return
 
-    def switch(self, token, target = None):
+    def switch(self, target = None):
         # The procedure automatically goes to the next user in the list. Use target variable to customize this behaviour
+
+        global tkn 
 
         if target == None:
             if (self.active + 1) == len(self.users):
@@ -140,19 +151,31 @@ class user:
             else:
                 self.active += 1
 
+        elif target == 'last':
+            self.active = len(self.users) - 1
+
         elif target not in range(len(self.users)):
             raise IndexError
 
         else:
             self.active = target
 
-        token.refreshTk = self.users[self.active]['refTkn']
-        token.update()
+        tkn.refreshTk = self.users[self.active]['refTkn']
+        tkn.update()
 
         self.save()
 
         return self.users[self.active]['name']
 
+    def current(self):
+        result = dict()
+        result['name'] = self.users[self.active]['name']
+        result['refTkn'] = self.users[self.active]['refTkn']
+
+        return result
+
+
+### INITIALIZATION ###
 
 settings = configparser.ConfigParser()
 settings.read(os.path.join(sys.path[0], 'settings.conf'))
@@ -188,8 +211,8 @@ lcd.clear()
 # combine both lines into one update to the display
 lcd.message = 'SpotifyControl\n'+version+' is ready!'
 
-tkn = tokens()
 usr = user()
+tkn = tokens()
 
 urls = (
   '/', 'index',
@@ -417,8 +440,7 @@ class authorized:
         reply = requests.post('https://accounts.spotify.com/api/token', data = {"grant_type":"authorization_code", "code":authCode, "redirect_uri":redirectUrl}, headers={'Authorization': f'Basic {base64Code}'})
 
         try:
-            tkn.changeRefreshTk(reply.json()['refresh_token'], reply.json()['access_token'], reply.json()['expires_in'])
-            usr.add(userName, reply.json()['refresh_token'], 'ND')
+            usr.add(userName, reply.json()['refresh_token'])
 
         except KeyError:
             return reply.text
@@ -454,7 +476,7 @@ class switchUser:
         global tkn
         global lcd
 
-        name = usr.switch(tkn)
+        name = usr.switch()
 
         lcd.clear()
         lcd.message = f'User switched to\n{name}'
