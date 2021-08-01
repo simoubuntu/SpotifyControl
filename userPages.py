@@ -56,3 +56,50 @@ class authorized:
 
         return f'Login completed for {name}'
 
+class userList:
+    def GET(self):
+        content = """<html>
+            <body>
+                <h3>User list</h3>
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Name</th>
+                            <th>Token</th>
+                            <th>Credentials</th>
+                            <th>Playlist</th>
+                            <th></th>
+                            <th></th>
+                        </tr>
+                    </thead>"""
+        for u in sh.usr.users:
+            content = content + "       <tbody>\n           <tr>\n"
+            content = content + f"              <td>{u['name']}</td>\n"
+
+            if str(u['refTkn']) == 'None':
+                tk = 'Err'
+            else:
+                tk = 'OK'
+            content = content + f"              <td>{tk}</td>\n"
+
+            if (str(u['username']) == 'None') | (str(u['devPassword']) == 'None'):
+                cred = 'Err'
+            else:
+                cred = 'OK'
+            content = content + f"              <td>{cred}</td>\n"
+
+            if str(u['playlistId']) == 'None':
+                pl = 'Empty'
+            else:
+                pl = 'OK'
+            content = content + f"              <td>{pl}</td>\n"
+
+            content = content + f"                            <td><i>Delete</i></td>                         </tr>\n"
+
+        content = content + """                    </tbody>
+                </table>
+            </body>
+        </html>"""
+
+        return content
+

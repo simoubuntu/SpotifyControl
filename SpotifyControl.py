@@ -18,7 +18,8 @@ urls = (
   '/onevent', 'machinePages.onEvent',
   '/authorized', 'userPages.authorized',
   '/like', 'machinePages.like',
-  '/switchuser', 'machinePages.switchUser'
+  '/switchuser', 'machinePages.switchUser',
+  '/userlist', 'userPages.userList'
 )
 
 if __name__ == '__main__':
