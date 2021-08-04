@@ -19,7 +19,9 @@ urls = (
   '/authorized', 'userPages.authorized',
   '/like', 'machinePages.like',
   '/switchuser', 'machinePages.switchUser',
-  '/userlist', 'userPages.userList'
+  '/userlist', 'userPages.userList',
+  '/edituser', 'userPages.editUser',
+  '/storeuserattribute', 'userPages.storeUserAttribute'
 )
 
 if __name__ == '__main__':

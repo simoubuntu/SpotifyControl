@@ -10,7 +10,7 @@ import adafruit_character_lcd.character_lcd as characterlcd
 
 import components as cm
 
-version = 'v0.2.4'
+version = 'v0.2.5'
 
 settings = configparser.ConfigParser()
 settings.read(os.path.join(sys.path[0], 'settings.conf'))

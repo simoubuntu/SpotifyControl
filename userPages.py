@@ -103,3 +103,75 @@ class userList:
 
         return content
 
+class editUser:
+    def GET(self):
+        try:
+            attr = web.input().attribute
+        except AttributeError:
+            return 'No option selected'
+
+        try:
+            userId = int(web.input().userid)
+            if userId > (len(sh.usr.users) - 1):
+                return 'Wrong user selected'
+
+        except AttributeError:
+            return 'No user selected'
+
+        if attr == 'name':
+            attribute = 'Name'
+        elif attr == 'credentials':
+            attribute = 'Device Password'
+        elif attr == 'playlist':
+            attribute = 'Playlist ID'
+        else:
+            return 'Wrong attribute selected'
+
+        content = f"""<html>
+    <body>
+        <h3>Edit <i>{attribute}</i></h3>
+        <form action="storeuserattribute" method="post">
+            <label>{attribute}</label>
+            <input type='text' name='value'>
+            <input type='text' name='attribute' value='{attr}' hidden>
+            <input type='text' name='userid' value='{userId}' hidden>
+            <input type="submit" value="Submit">
+        </form>
+    </body>
+</html>"""
+
+        return content
+        
+class storeUserAttribute:
+    def POST(self):
+        try:
+            attr = web.input().attribute
+        except AttributeError:
+            return 'No option submitted'
+
+        try:
+            value = web.input().value
+        except AttributeError:
+            return 'No value submitted'
+
+        try:
+            userId = int(web.input().userid)
+            if userId > (len(sh.usr.users) - 1):
+                return 'Wrong user submitted'
+
+        except AttributeError:
+            return 'No user submitted'
+
+        if attr == 'name':
+            sh.usr.users[userId]['name'] = str(value)
+        elif attr == 'credentials':
+            sh.usr.users[userId]['devPassword'] = str(value)
+        elif attr == 'playlist':
+            sh.usr.users[userId]['playlistId'] = str(value)
+        else:
+            return 'Wrong attribute selected'
+
+        sh.usr.save()
+
+        return '<html>Saved!<br><a href="userlist">Back to user list</a></html>'
+
