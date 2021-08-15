@@ -15,7 +15,8 @@ header = """<!doctype html>
     
     </head>
     <body>
-        <div class='container my-md-5 my-3' style='max-width: 720px;'>"""
+        <div class='container my-md-5 my-3' style='max-width: 720px;'>
+"""
 
 footer = """        </div>
     </body>
@@ -34,7 +35,9 @@ class index:
         body = header + """                <h2>SpotifyControl</h2>
                 <h3>Version """ + sh.version + """</h3>
                 <p>Control the playback from Spotify on your Raspberry with simple HTTP requests!</p>
-                <p>Current user: """ + "inserire nome" + """</p>
+                <div class='row'>
+                    <a href='userlist' class='btn btn-primary col-sm-4' tabindex='-1' role='button' aria-disabled='true'>Manage users</a>
+                </div>
                 <div>
                     <h3>Add new user</h3>
                     <form action='""" + changeUserUrl + """'>
@@ -75,50 +78,64 @@ class authorized:
 
 class userList:
     def GET(self):
-        content = """<html>
-            <body>
-                <h3>User list</h3>
-                <table>
-                    <thead>
-                        <tr>
-                            <th>Name</th>
-                            <th>Token</th>
-                            <th>Credentials</th>
-                            <th>Playlist</th>
-                            <th></th>
-                            <th></th>
-                        </tr>
-                    </thead>"""
+
+        global header
+        global footer
+
+        content = header + """                <h3>User list</h3>
+            <div class='table-responsive'>
+                <table class='table table-striped table-hover'>
+                        <thead>
+                            <tr>
+                                <th scope='col'>#</th>
+                                <th scope='col'>Name</th>
+                                <th scope='col'>Token</th>
+                                <th scope='col'>Credentials</th>
+                                <th scope='col'>Playlist</th>
+                                <th scope='col'></th>
+                                <th scope='col'></th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                        """
+        
+        rowCount = 0
         for u in sh.usr.users:
-            content = content + "       <tbody>\n           <tr>\n"
-            content = content + f"              <td>{u['name']}</td>\n"
+            rowCount += 1
+            if rowCount == sh.usr.active + 1:
+                strActive = " class='table-primary'"
+            else:
+                strActive = ''
+
+            content = content + f"    <tr{strActive}>\n               <th scope='row'>{rowCount}</th>"
+            content = content + f"                  <td>{u['name']}</td>\n"
 
             if str(u['refTkn']) == 'None':
                 tk = 'Err'
             else:
                 tk = 'OK'
-            content = content + f"              <td>{tk}</td>\n"
+            content = content + f"                  <td>{tk}</td>\n"
 
             if (str(u['username']) == 'None') | (str(u['devPassword']) == 'None'):
                 cred = 'Err'
             else:
                 cred = 'OK'
-            content = content + f"              <td>{cred}</td>\n"
+            content = content + f"                  <td>{cred}</td>\n"
 
             if str(u['playlistId']) == 'None':
                 pl = 'Empty'
             else:
                 pl = 'OK'
-            content = content + f"              <td>{pl}</td>\n"
+            content = content + f"                  <td>{pl}</td>\n"
 
-            content = content + f"                            <td><i>Delete</i></td>                         </tr>\n"
+            content = content + f"                                <td><i>Delete</i></td>                         </tr>\n"
 
-        content = content + """                    </tbody>
-                </table>
-            </body>
-        </html>"""
+        content = content + """                        </tbody>
+                    </table>
+                </div>
+"""
 
-        return content
+        return content + footer
 
 class editUser:
     def GET(self):
