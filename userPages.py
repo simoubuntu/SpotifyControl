@@ -12,6 +12,8 @@ header = """<!doctype html>
         <meta name='viewport' content='width=device-width, initial-scale=1'>
     
         <link href='https://cdn.jsdelivr.net/npm/bootstrap@5.1.0/dist/css/bootstrap.min.css' rel='stylesheet' integrity='sha384-KyZXEAg3QhqLMpG8r+8fhAXLRk2vvoC2f3B09zVXn8CA5QIVfZOJ3BCsw2P0p/We' crossorigin='anonymous'>
+
+        <script src="https://kit.fontawesome.com/c28bad8915.js" crossorigin="anonymous"></script>
     
     </head>
     <body>
@@ -21,6 +23,12 @@ header = """<!doctype html>
 footer = """        </div>
     </body>
 </html>"""
+
+symbols = dict()
+
+symbols['ok'] = '<i class="fas fa-check-circle text-success"></i>'
+symbols['wrong'] = '<i class="fas fa-times-circle text-danger"></i>'
+symbols['delete'] = '<i class="fas fa-trash text-danger"></i>'
 
 class index:
     def GET(self):
@@ -81,6 +89,7 @@ class userList:
 
         global header
         global footer
+        global symbols
 
         content = header + """                <h3>User list</h3>
             <div class='table-responsive'>
@@ -89,10 +98,10 @@ class userList:
                             <tr>
                                 <th scope='col'>#</th>
                                 <th scope='col'>Name</th>
-                                <th scope='col'>Token</th>
-                                <th scope='col'>Credentials</th>
-                                <th scope='col'>Playlist</th>
-                                <th scope='col'></th>
+                                <th scope='col' class='text-center'>Token</th>
+                                <th scope='col' class='text-center'>Credentials</th>
+                                <th scope='col' class='text-center'>Playlist</th>
+                                <th scope='col' class='text-center'>Delete</th>
                                 <th scope='col'></th>
                             </tr>
                         </thead>
@@ -111,24 +120,24 @@ class userList:
             content = content + f"                  <td>{u['name']}</td>\n"
 
             if str(u['refTkn']) == 'None':
-                tk = 'Err'
+                tk = symbols['wrong']
             else:
-                tk = 'OK'
-            content = content + f"                  <td>{tk}</td>\n"
+                tk = symbols['ok']
+            content = content + f"                  <td class='text-center'>{tk}</td>\n"
 
             if (str(u['username']) == 'None') | (str(u['devPassword']) == 'None'):
-                cred = 'Err'
+                cred = symbols['wrong']
             else:
-                cred = 'OK'
-            content = content + f"                  <td>{cred}</td>\n"
+                cred = symbols['ok']
+            content = content + f"                  <td class='text-center'>{cred}</td>\n"
 
             if str(u['playlistId']) == 'None':
-                pl = 'Empty'
+                pl = symbols['wrong']
             else:
-                pl = 'OK'
-            content = content + f"                  <td>{pl}</td>\n"
+                pl = symbols['ok']
+            content = content + f"                  <td class='text-center'>{pl}</td>\n"
 
-            content = content + f"                                <td><i>Delete</i></td>                         </tr>\n"
+            content = content + f"                                <td class='text-center'>{symbols['delete']}</td>                         </tr>\n"
 
         content = content + """                        </tbody>
                     </table>
