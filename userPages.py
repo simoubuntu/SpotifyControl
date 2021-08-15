@@ -5,16 +5,33 @@ import RPi.GPIO as GPIO
 
 import shared as sh
 
+header = """<!doctype html>
+<html lang='en'>
+    <head>
+        <meta charset='utf-8'>
+        <meta name='viewport' content='width=device-width, initial-scale=1'>
+    
+        <link href='https://cdn.jsdelivr.net/npm/bootstrap@5.1.0/dist/css/bootstrap.min.css' rel='stylesheet' integrity='sha384-KyZXEAg3QhqLMpG8r+8fhAXLRk2vvoC2f3B09zVXn8CA5QIVfZOJ3BCsw2P0p/We' crossorigin='anonymous'>
+    
+    </head>
+    <body>
+        <div class='container my-md-5 my-3' style='max-width: 720px;'>"""
+
+footer = """        </div>
+    </body>
+</html>"""
+
 class index:
     def GET(self):
+        
+        global header
+        global footer
         
         redirectUrl = sh.settings['Device']['address'] + '/authorized'
         clientId = sh.settings['Spotify']['clientId']
         changeUserUrl = f"https://accounts.spotify.com/authorize?client_id={clientId}&response_type=code&redirect_uri={redirectUrl}&scope=user-read-playback-state%20user-modify-playback-state%20playlist-modify-public%20playlist-modify-private"
 
-        body = """<html>
-            <body>
-                <h2>SpotifyControl</h2>
+        body = header + """                <h2>SpotifyControl</h2>
                 <h3>Version """ + sh.version + """</h3>
                 <p>Control the playback from Spotify on your Raspberry with simple HTTP requests!</p>
                 <p>Current user: """ + "inserire nome" + """</p>
@@ -33,7 +50,7 @@ class index:
             </body>    
         </html>
         """
-        return body
+        return body + footer
 
 class authorized:
     def GET(self):
