@@ -21,7 +21,8 @@ urls = (
   '/switchuser', 'machinePages.switchUser',
   '/userlist', 'userPages.userList',
   '/edituser', 'userPages.editUser',
-  '/storeuserattribute', 'userPages.storeUserAttribute'
+  '/storeuserattribute', 'userPages.storeUserAttribute',
+  '/deleteuser', 'userPages.deleteUser'
 )
 
 if __name__ == '__main__':

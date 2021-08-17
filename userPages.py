@@ -29,6 +29,8 @@ symbols = dict()
 symbols['ok'] = '<i class="fas fa-check-circle text-success"></i>'
 symbols['wrong'] = '<i class="fas fa-times-circle text-danger"></i>'
 symbols['delete'] = '<i class="fas fa-trash text-danger"></i>'
+symbols['toggleOn'] = '<i class="fas fa-toggle-on text-success"></i>'
+symbols['toggleOff'] = '<i class="fas fa-toggle-off text-secondary"></i>'
 
 class index:
     def GET(self):
@@ -97,12 +99,12 @@ class userList:
                         <thead>
                             <tr>
                                 <th scope='col'>#</th>
+                                <th scope='col' class='text-end'>Active</th>
                                 <th scope='col'>Name</th>
                                 <th scope='col' class='text-center'>Token</th>
                                 <th scope='col' class='text-center'>Credentials</th>
                                 <th scope='col' class='text-center'>Playlist</th>
                                 <th scope='col' class='text-center'>Delete</th>
-                                <th scope='col'></th>
                             </tr>
                         </thead>
                         <tbody>
@@ -112,12 +114,18 @@ class userList:
         for u in sh.usr.users:
             rowCount += 1
             if rowCount == sh.usr.active + 1:
-                strActive = " class='table-primary'"
+                # strActive = " class='table-primary'"
+                strActive = ''
+                activeToggle = symbols['toggleOn']
             else:
                 strActive = ''
+                activeToggle = symbols['toggleOff']
 
             content = content + f"    <tr{strActive}>\n               <th scope='row'>{rowCount}</th>"
+            content = content + f"                  <td class='text-end h4'>{activeToggle}</td>\n"
             content = content + f"                  <td>{u['name']}</td>\n"
+
+
 
             if str(u['refTkn']) == 'None':
                 tk = symbols['wrong']
@@ -137,7 +145,7 @@ class userList:
                 pl = symbols['ok']
             content = content + f"                  <td class='text-center'>{pl}</td>\n"
 
-            content = content + f"                                <td class='text-center'>{symbols['delete']}</td>                         </tr>\n"
+            content = content + f"                                <td class='text-center'><a href='deleteuser?id={rowCount-1}'>{symbols['delete']}</a></td>                         </tr>\n"
 
         content = content + """                        </tbody>
                     </table>
@@ -218,3 +226,17 @@ class storeUserAttribute:
 
         return '<html>Saved!<br><a href="userlist">Back to user list</a></html>'
 
+class deleteUser:
+    def GET(self):
+        try:
+            id = int(web.input().id)
+
+            reply = sh.usr.delete(id)
+
+            return f'User {reply} deleted successfully!'
+
+        except AttributeError:
+            return 'No user id submitted'
+
+        except IndexError:
+            return 'Id out of range. Check it please.'
