@@ -119,7 +119,7 @@ class userList:
                 activeToggle = symbols['toggleOn']
             else:
                 strActive = ''
-                activeToggle = symbols['toggleOff']
+                activeToggle = f'<a href="switchuser?id={rowCount-1}&redirect=userlist">' + symbols['toggleOff'] + '</a>'
 
             content = content + f"    <tr{strActive}>\n               <th scope='row'>{rowCount}</th>"
             content = content + f"                  <td class='text-end h4'>{activeToggle}</td>\n"

@@ -186,12 +186,24 @@ class switchUser:
         
         sh.librespot.deactivate()
 
-        name = sh.usr.switch()
+        try:
+            redirect = web.input().redirect
+            redString = f"""<html><head><meta http-equiv="refresh" content="0; URL='{redirect}'" /></head>\n"""
+        
+        except AttributeError:
+            redString = ''
+
+        try:
+            id = int(web.input().id)
+            name = sh.usr.switch(id)
+
+        except AttributeError:
+            name = sh.usr.switch()
 
         sh.librespot.activate(sh.usr.current())
 
         sh.lcd.clear()
         sh.lcd.message = f'User switched to\n{name}'
 
-        return f'User switched to {name}'
+        return redString + f'User switched to {name}'
 
