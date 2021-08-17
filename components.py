@@ -163,6 +163,13 @@ class user:
 
         return result
 
+    def delete(self, id):
+        usr = self.users.pop(id)
+
+        self.save()
+
+        return usr['name'] 
+
 class libreSpotContainer:
     def __init__(self):
         self.status = False
