@@ -95,7 +95,14 @@ class userList:
         global footer
         global symbols
 
-        content = header + """                <h3>User list</h3>
+        content = header + """                
+            <nav class='nav nav-pills py-1 mb-3'>
+                <a class='btn btn-light ms-1 me-2' href='..'><i class="fas fa-chevron-circle-left me-2"></i>Back</a>
+                <div class='vr'></div>
+                <h3 class='my-auto mx-4'>User list</h3>
+                <div class='vr'></div>
+                <a class='btn btn-primary ms-2' href='newuser'><i class="fas fa-plus-circle me-2"></i>Add new user</a>
+            </nav>
             <div class='table-responsive'>
                 <table class='table table-striped table-hover'>
                     <caption>Click or touch the symbols to edit properties</caption>
@@ -201,7 +208,12 @@ class editUser:
         else:
             return 'Wrong attribute selected'
 
-        content = header + f"""<h3>Edit <i>{attribute}</i></h3>
+        content = header + f"""
+            <nav class='nav nav-pills py-1 mb-3'>
+                <a class='btn btn-light ms-1 me-2' href='userlist'><i class="fas fa-chevron-circle-left me-2"></i>Back</a>
+                <div class='vr'></div>
+                <h3 class='my-auto mx-4'>Edit <i>{attribute}</i></h3>
+            </nav>
         <div class='col-sm-6 col-md-4'>
         <form action='storeuserattribute' method='post'>
             <div class='mb-3'>
