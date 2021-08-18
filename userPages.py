@@ -31,6 +31,8 @@ symbols['wrong'] = '<i class="fas fa-times-circle text-danger"></i>'
 symbols['delete'] = '<i class="fas fa-trash text-danger"></i>'
 symbols['toggleOn'] = '<i class="fas fa-toggle-on text-success"></i>'
 symbols['toggleOff'] = '<i class="fas fa-toggle-off text-secondary"></i>'
+symbols['forbidden'] = '<i class="fas fa-slash text-secondary"></i>'
+symbols['edit'] = '<i class="fas fa-pencil-alt"></i>'
 
 class index:
     def GET(self):
@@ -96,6 +98,7 @@ class userList:
         content = header + """                <h3>User list</h3>
             <div class='table-responsive'>
                 <table class='table table-striped table-hover'>
+                    <caption>Click or touch the symbols to edit properties</caption>
                         <thead>
                             <tr>
                                 <th scope='col'>#</th>
@@ -112,18 +115,24 @@ class userList:
         
         rowCount = 0
         for u in sh.usr.users:
-            rowCount += 1
-            if rowCount == sh.usr.active + 1:
+
+            if (str(u['username']) == 'None') | (str(u['devPassword']) == 'None'):
+                cred = symbols['wrong']
+                activeToggle = symbols['forbidden']
+            else:
+                cred = symbols['ok']
+                activeToggle = f'<a href="switchuser?id={rowCount}&redirect=userlist">' + symbols['toggleOff'] + '</a>'
+
+            if rowCount == sh.usr.active:
                 # strActive = " class='table-primary'"
                 strActive = ''
                 activeToggle = symbols['toggleOn']
             else:
                 strActive = ''
-                activeToggle = f'<a href="switchuser?id={rowCount-1}&redirect=userlist">' + symbols['toggleOff'] + '</a>'
 
-            content = content + f"    <tr{strActive}>\n               <th scope='row'>{rowCount}</th>"
+            content = content + f"    <tr{strActive}>\n               <th scope='row'>{rowCount+1}</th>"
             content = content + f"                  <td class='text-end h4'>{activeToggle}</td>\n"
-            content = content + f"                  <td>{u['name']}</td>\n"
+            content = content + f"                  <td><a href='edituser?attribute=name&userid={rowCount}'>{u['name']} {symbols['edit']}</a></td>\n"
 
 
 
@@ -133,19 +142,18 @@ class userList:
                 tk = symbols['ok']
             content = content + f"                  <td class='text-center'>{tk}</td>\n"
 
-            if (str(u['username']) == 'None') | (str(u['devPassword']) == 'None'):
-                cred = symbols['wrong']
-            else:
-                cred = symbols['ok']
-            content = content + f"                  <td class='text-center'>{cred}</td>\n"
+            # Credentials check moved up to avoid the activation of a user without device password
+            content = content + f"                  <td class='text-center'><a href='edituser?attribute=credentials&userid={rowCount}'>{cred}</a></td>\n"
 
             if str(u['playlistId']) == 'None':
                 pl = symbols['wrong']
             else:
                 pl = symbols['ok']
-            content = content + f"                  <td class='text-center'>{pl}</td>\n"
+            content = content + f"                  <td class='text-center'><a href='edituser?attribute=playlist&userid={rowCount}'>{pl}</a></td>\n"
 
-            content = content + f"                                <td class='text-center'><a href='deleteuser?id={rowCount-1}'>{symbols['delete']}</a></td>                         </tr>\n"
+            content = content + f"                                <td class='text-center'><a href='deleteuser?id={rowCount}'>{symbols['delete']}</a></td>                         </tr>\n"
+
+            rowCount += 1
 
         content = content + """                        </tbody>
                     </table>
@@ -156,6 +164,10 @@ class userList:
 
 class editUser:
     def GET(self):
+
+        global header
+        global footer
+        
         try:
             attr = web.input().attribute
         except AttributeError:
@@ -171,25 +183,38 @@ class editUser:
 
         if attr == 'name':
             attribute = 'Name'
+            oldValue = sh.usr.users[userId]['name']
+            fieldType = 'text'
+
         elif attr == 'credentials':
             attribute = 'Device Password'
+            oldValue = ''
+            fieldType = 'password'
+
         elif attr == 'playlist':
             attribute = 'Playlist ID'
+            oldValue = sh.usr.users[userId]['playlistId']
+            if oldValue == None:
+                oldValue = ''
+            fieldType = 'text'
+
         else:
             return 'Wrong attribute selected'
 
-        content = f"""<html>
-    <body>
-        <h3>Edit <i>{attribute}</i></h3>
-        <form action="storeuserattribute" method="post">
-            <label>{attribute}</label>
-            <input type='text' name='value'>
+        content = header + f"""<h3>Edit <i>{attribute}</i></h3>
+        <div class='col-sm-6 col-md-4'>
+        <form action='storeuserattribute' method='post'>
+            <div class='mb-3'>
+                <label class='form-label' for='inputfield'>{attribute}</label>
+                <input class='form-control' type='{fieldType}' name='value' value='{oldValue}' placeholder='{attribute}' id='inputfield'>
+            </div>
             <input type='text' name='attribute' value='{attr}' hidden>
             <input type='text' name='userid' value='{userId}' hidden>
-            <input type="submit" value="Submit">
-        </form>
-    </body>
-</html>"""
+            <div class='mb-3'>
+                <a href='userlist' class='btn btn-secondary'>Back</a>
+                <input class='btn btn-primary' type='submit' value='Submit'>
+            </div>
+        </form></div>""" + footer
 
         return content
         
@@ -223,8 +248,8 @@ class storeUserAttribute:
             return 'Wrong attribute selected'
 
         sh.usr.save()
-
-        return '<html>Saved!<br><a href="userlist">Back to user list</a></html>'
+        
+        return """<html><head><meta http-equiv="refresh" content="1; URL='userlist'" /></head>\n<body>Saved!</body></html>"""
 
 class deleteUser:
     def GET(self):
