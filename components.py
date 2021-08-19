@@ -188,6 +188,20 @@ class libreSpotContainer:
         return
 
 def generateNavbar(pageTitle, backUrl, additionalButtons = None) -> str:
+    """generateNavbar creates the HTML code for a customizable navbar
+
+    Args:
+        pageTitle (str): string containing the page title
+        backUrl (str): string containing the url for the back button
+        additionalButtons (tuple or list of tuples, optional): information for the optional buttons. Format (text, url, color).
+
+    Raises:
+        TypeError: exception raised when the third argument is not a tuple or a list.
+
+    Returns:
+        str: HTML code for the navbar
+    """   
+
     cont = f"""
     <nav class='nav nav-pills py-1 mb-3'>
         <a class='btn btn-light ms-1 me-2' href='{backUrl}'><i class="fas fa-chevron-circle-left me-2"></i>Back</a>
