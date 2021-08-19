@@ -22,7 +22,8 @@ urls = (
   '/userlist', 'userPages.userList',
   '/edituser', 'userPages.editUser',
   '/storeuserattribute', 'userPages.storeUserAttribute',
-  '/deleteuser', 'userPages.deleteUser'
+  '/deleteuser', 'userPages.deleteUser',
+  '/adduser', 'userPages.addUser'
 )
 
 if __name__ == '__main__':

@@ -71,6 +71,20 @@ class index:
 class authorized:
     def GET(self):
 
+        global header
+        global footer
+
+        content = header + cm.generateNavbar('Login process', 'userlist', ('<i class="fas fa-trash-alt"></i> Delete', f'deleteuser?id={len(sh.usr.users)}', 'danger')) + f"""
+        <div class='alert alert-success mb-3'>Operation successful!</div>
+        <div>
+        <p>Now continue the configuration creating a custom password for devices in your Spotify account.</p>
+        <a class='btn btn-primary' href='edituser?attribute=credentials&userid={len(sh.usr.users)}'>Continue configuration</a>
+        </div>
+
+        """
+
+        content = content + footer
+
         authCode = web.input().code
         name = web.input().state
         base64Code = sh.settings['Spotify']['base64Tk']
@@ -87,7 +101,7 @@ class authorized:
         sh.lcd.clear()
         sh.lcd.message = 'Login completed!\nReady to play'
 
-        return f'Login completed for {name}'
+        return content
 
 class userList:
     def GET(self):
@@ -206,8 +220,8 @@ class editUser:
         <form action='storeuserattribute' method='post'>
             <div class='row'>
             <div class='mb-3 col-sm-6 col-md-4'>
-                <label class='form-label' for='inputfield'>{attribute}</label>
-                <input class='form-control' type='{fieldType}' name='value' value='{oldValue}' placeholder='{attribute}' id='inputfield'>
+                <label class='form-label' for='inputField'>{attribute}</label>
+                <input class='form-control' type='{fieldType}' name='value' value='{oldValue}' placeholder='{attribute}' id='inputField'>
             </div>
             <input type='text' name='attribute' value='{attr}' hidden>
             <input type='text' name='userid' value='{userId}' hidden>
@@ -266,3 +280,35 @@ class deleteUser:
 
         except IndexError:
             return 'Id out of range. Check it please.'
+
+class addUser:
+    def GET(self):
+
+        global header
+        global footer
+
+        redirectUrl = sh.settings['Device']['address'] + '/authorized'
+        clientId = sh.settings['Spotify']['clientId']
+        changeUserUrl = f"https://accounts.spotify.com/authorize?client_id={clientId}&response_type=code&redirect_uri={redirectUrl}&scope=user-read-playback-state%20user-modify-playback-state%20playlist-modify-public%20playlist-modify-private"
+
+        content = header + cm.generateNavbar('Add new user', 'userlist') + f"""
+            <form action='{changeUserUrl}'>
+            <div class='row'>
+            <div class='mb-3 col-sm-6 col-md-4'>
+                <label class='form-label' for='inputField'>User name</label>
+                <input class='form-control' type='text' name='state'>
+            </div>
+            <input type='text' name='client_id' value='{clientId}' hidden>
+            <input type='text' name='response_type' value='code' hidden>
+            <input type='text' name='redirect_uri' value='{redirectUrl}' hidden>
+            <input type='text' name='scope' value='user-read-playback-state%20user-modify-playback-state%20playlist-modify-public%20playlist-modify-private' hidden>
+            <div class='mb-3 col-sm-4 mt-auto'>
+                <input class='btn btn-primary' type="submit" value="Submit">
+            </div>
+            </div>
+            </form>
+        """
+
+        content = content + footer
+
+        return content
