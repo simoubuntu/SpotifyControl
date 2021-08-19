@@ -4,6 +4,7 @@ import requests
 import RPi.GPIO as GPIO
 
 import shared as sh
+import components as cm
 
 header = """<!doctype html>
 <html lang='en'>
@@ -95,14 +96,7 @@ class userList:
         global footer
         global symbols
 
-        content = header + """                
-            <nav class='nav nav-pills py-1 mb-3'>
-                <a class='btn btn-light ms-1 me-2' href='..'><i class="fas fa-chevron-circle-left me-2"></i>Back</a>
-                <div class='vr'></div>
-                <h3 class='my-auto mx-4'>User list</h3>
-                <div class='vr'></div>
-                <a class='btn btn-primary ms-2' href='newuser'><i class="fas fa-plus-circle me-2"></i>Add new user</a>
-            </nav>
+        content = header + cm.generateNavbar('User list', '..', ('<i class="fas fa-plus-circle me-2"></i>Add new user','adduser','primary')) + """                
             <div class='table-responsive'>
                 <table class='table table-striped table-hover'>
                     <caption>Click or touch the symbols to edit properties</caption>
@@ -208,25 +202,20 @@ class editUser:
         else:
             return 'Wrong attribute selected'
 
-        content = header + f"""
-            <nav class='nav nav-pills py-1 mb-3'>
-                <a class='btn btn-light ms-1 me-2' href='userlist'><i class="fas fa-chevron-circle-left me-2"></i>Back</a>
-                <div class='vr'></div>
-                <h3 class='my-auto mx-4'>Edit <i>{attribute}</i></h3>
-            </nav>
-        <div class='col-sm-6 col-md-4'>
+        content = header + cm.generateNavbar(f'Edit <i>{attribute}</i>', 'userlist') + f"""
         <form action='storeuserattribute' method='post'>
-            <div class='mb-3'>
+            <div class='row'>
+            <div class='mb-3 col-sm-6 col-md-4'>
                 <label class='form-label' for='inputfield'>{attribute}</label>
                 <input class='form-control' type='{fieldType}' name='value' value='{oldValue}' placeholder='{attribute}' id='inputfield'>
             </div>
             <input type='text' name='attribute' value='{attr}' hidden>
             <input type='text' name='userid' value='{userId}' hidden>
-            <div class='mb-3'>
-                <a href='userlist' class='btn btn-secondary'>Back</a>
+            <div class='mb-3 col-sm-4 mt-auto'>
                 <input class='btn btn-primary' type='submit' value='Submit'>
             </div>
-        </form></div>""" + footer
+            </div>
+        </form>""" + footer
 
         return content
         

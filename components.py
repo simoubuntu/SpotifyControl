@@ -186,3 +186,36 @@ class libreSpotContainer:
         self.status = False
 
         return
+
+def generateNavbar(pageTitle, backUrl, additionalButtons = None) -> str:
+    cont = f"""
+    <nav class='nav nav-pills py-1 mb-3'>
+        <a class='btn btn-light ms-1 me-2' href='{backUrl}'><i class="fas fa-chevron-circle-left me-2"></i>Back</a>
+        <div class='vr'></div>
+        <h3 class='my-auto mx-4'>{pageTitle}</h3>"""
+
+    if type(additionalButtons) is tuple:
+        cont = cont + f"""
+        <div class='vr'></div>
+        <a class='btn btn-{additionalButtons[2]} ms-2' href='{additionalButtons[1]}'>{additionalButtons[0]}</a>
+        """
+    elif type(additionalButtons) is list:
+        cont = cont + f"""
+        <div class='vr'></div>"""
+
+        for ab in additionalButtons:
+            cont = cont + f"""
+            <a class='btn btn-{ab[2]} ms-2' href='{ab[1]}'>{ab[0]}</a>
+            """
+    elif additionalButtons == None:
+        pass
+        
+    else:
+        raise TypeError
+
+    cont = cont + """
+    </nav>
+    """
+
+    return cont
+    
