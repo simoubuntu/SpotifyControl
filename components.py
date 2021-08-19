@@ -128,8 +128,6 @@ class user:
 
         self.save()
 
-        self.switch('last')
-
         return
 
     def switch(self, target = None):

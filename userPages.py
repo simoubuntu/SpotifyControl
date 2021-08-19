@@ -49,19 +49,7 @@ class index:
                 <h3>Version """ + sh.version + """</h3>
                 <p>Control the playback from Spotify on your Raspberry with simple HTTP requests!</p>
                 <div class='row'>
-                    <a href='userlist' class='btn btn-primary col-sm-4' tabindex='-1' role='button' aria-disabled='true'>Manage users</a>
-                </div>
-                <div>
-                    <h3>Add new user</h3>
-                    <form action='""" + changeUserUrl + """'>
-                        <label>User name</label>
-                        <input type='text' name='state'>
-                        <input type='text' name='client_id' value='""" + clientId + """' hidden>
-                        <input type='text' name='response_type' value='code' hidden>
-                        <input type='text' name='redirect_uri' value='""" + redirectUrl + """' hidden>
-                        <input type='text' name='scope' value='user-read-playback-state%20user-modify-playback-state%20playlist-modify-public%20playlist-modify-private' hidden>
-                        <input type="submit" value="Submit">
-                    </form>
+                    <a href='userlist' class='btn btn-primary col-sm-4 mt-3' tabindex='-1' role='button' aria-disabled='true'>Manage users</a>
                 </div>
             </body>    
         </html>
@@ -78,7 +66,7 @@ class authorized:
         <div class='alert alert-success mb-3'>Operation successful!</div>
         <div>
         <p>Now continue the configuration creating a custom password for devices in your Spotify account.</p>
-        <a class='btn btn-primary' href='edituser?attribute=credentials&userid={len(sh.usr.users)}'>Continue configuration</a>
+        <a class='btn btn-primary' href='edituser?attribute=credentials&userid={len(sh.usr.users)}&new=true'>Continue</a>
         </div>
 
         """
@@ -110,7 +98,16 @@ class userList:
         global footer
         global symbols
 
-        content = header + cm.generateNavbar('User list', '..', ('<i class="fas fa-plus-circle me-2"></i>Add new user','adduser','primary')) + """                
+        content = header + cm.generateNavbar('User list', '..', ('<i class="fas fa-plus-circle me-2"></i>Add new user','adduser','primary')) 
+
+        message = ''
+        try:
+            if web.input().newuser == 'true':
+                message = "<div class='alert alert-success mb-3'><b>Login completed.</b></br> Now you can activate the new user.</div>"
+        except AttributeError:
+            pass
+        
+        content = content + message + """                
             <div class='table-responsive'>
                 <table class='table table-striped table-hover'>
                     <caption>Click or touch the symbols to edit properties</caption>
@@ -196,15 +193,24 @@ class editUser:
         except AttributeError:
             return 'No user selected'
 
+        newUser = 'false'
+
         if attr == 'name':
             attribute = 'Name'
             oldValue = sh.usr.users[userId]['name']
             fieldType = 'text'
+            navbar = cm.generateNavbar(f'Edit <i>{attribute}</i>', 'userlist')
 
         elif attr == 'credentials':
+            try:
+                newUser = web.input().new
+            except AttributeError:
+                pass
+
             attribute = 'Device Password'
             oldValue = ''
             fieldType = 'password'
+            navbar = cm.generateNavbar(f'Edit <i>{attribute}</i>', 'userlist', ('<i class="fab fa-spotify"></i> Create password on Spotify', "https://www.spotify.com/it/account/set-device-password/' target='_blank'", 'success'))
 
         elif attr == 'playlist':
             attribute = 'Playlist ID'
@@ -212,11 +218,12 @@ class editUser:
             if oldValue == None:
                 oldValue = ''
             fieldType = 'text'
+            navbar = cm.generateNavbar(f'Edit <i>{attribute}</i>', 'userlist')
 
         else:
             return 'Wrong attribute selected'
 
-        content = header + cm.generateNavbar(f'Edit <i>{attribute}</i>', 'userlist') + f"""
+        content = header + navbar + f"""
         <form action='storeuserattribute' method='post'>
             <div class='row'>
             <div class='mb-3 col-sm-6 col-md-4'>
@@ -225,6 +232,7 @@ class editUser:
             </div>
             <input type='text' name='attribute' value='{attr}' hidden>
             <input type='text' name='userid' value='{userId}' hidden>
+            <input type='text' name='newuser' value='{newUser}' hidden>
             <div class='mb-3 col-sm-4 mt-auto'>
                 <input class='btn btn-primary' type='submit' value='Submit'>
             </div>
@@ -253,18 +261,25 @@ class storeUserAttribute:
         except AttributeError:
             return 'No user submitted'
 
+        options = ''
+
         if attr == 'name':
             sh.usr.users[userId]['name'] = str(value)
+
         elif attr == 'credentials':
             sh.usr.users[userId]['devPassword'] = str(value)
+            if web.input().newuser == 'true':
+                options = '?newuser=true'
+
         elif attr == 'playlist':
             sh.usr.users[userId]['playlistId'] = str(value)
+
         else:
             return 'Wrong attribute selected'
 
         sh.usr.save()
         
-        return """<html><head><meta http-equiv="refresh" content="1; URL='userlist'" /></head>\n<body>Saved!</body></html>"""
+        return f"""<html><head><meta http-equiv="refresh" content="1; URL='userlist{options}'" /></head>\n<body>Saved!</body></html>"""
 
 class deleteUser:
     def GET(self):
