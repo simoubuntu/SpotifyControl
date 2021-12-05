@@ -125,9 +125,9 @@ class transferHere:
 class onEvent:
     def POST(self):
 
-        screenEvents = ['start', 'change']
-        playingEvents = ['start', 'playing']
-        stopEvents = ['paused', 'stop']
+        screenEvents = ['started', 'changed']
+        playingEvents = ['started', 'playing']
+        stopEvents = ['paused', 'stopped']
 
         data = web.data().decode("utf-8").split(',')
         trackId = data[0]
