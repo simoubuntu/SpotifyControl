@@ -24,7 +24,9 @@ class tokens:
 
     def update(self):
 
-        req = requests.post('https://accounts.spotify.com/api/token', data = {'grant_type':'refresh_token','refresh_token':self.refreshTk}, headers={'Authorization': f'Basic {self.base64Tk}'})
+        req = post('https://accounts.spotify.com/api/token', data = {'grant_type':'refresh_token','refresh_token':self.refreshTk}, headers={'Authorization': f'Basic {self.base64Tk}'})
+        if req == None:
+            return
         try:
             self.authTk = req.json()['access_token']
             expiresIn = req.json()['expires_in']
@@ -230,4 +232,21 @@ def generateNavbar(pageTitle, backUrl, additionalButtons = None) -> str:
     """
 
     return cont
-    
+
+def post(url, data, headers):
+
+    reply = None
+    try:
+        reply = requests.post(url, data = data, headers = headers, timeout = sh.requestsTimeout)
+
+    except requests.Timeout as err:
+        sh.lcd.clear()
+        sh.lcd.message = 'Connection timeout\Check internet!'
+        print(err)
+
+    except requests.ConnectionError as err:
+        sh.lcd.clear()
+        sh.lcd.message = 'Connection error\nCheck internet!'
+        print(err)
+
+    return reply

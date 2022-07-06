@@ -19,6 +19,8 @@ receivedPin = 11
 shufflePin = 9
 playingPin = 16
 
+requestsTimeout = 10
+
 GPIO.setwarnings(False)
 GPIO.setmode(GPIO.BCM)
 GPIO.setup(shufflePin, GPIO.OUT)
