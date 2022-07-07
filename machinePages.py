@@ -23,10 +23,17 @@ class player:
 
         sh.tkn.check()
 
-        if self.method == 'POST':
-            req = requests.post(f'https://api.spotify.com/v1/me/player/{self.command}', headers={'Accept': 'application/json', 'Content-Type': 'application/json', 'Authorization': f'Bearer {sh.tkn.authTk}'})
-        elif self.method == 'PUT':
-            req = requests.put(f'https://api.spotify.com/v1/me/player/{self.command}', headers={'Accept': 'application/json', 'Content-Type': 'application/json', 'Authorization': f'Bearer {sh.tkn.authTk}'})
+        try:
+            if self.method == 'POST':
+                req = requests.post(f'https://api.spotify.com/v1/me/player/{self.command}', headers={'Accept': 'application/json', 'Content-Type': 'application/json', 'Authorization': f'Bearer {sh.tkn.authTk}'}, timeout = sh.requestsTimeout)
+            elif self.method == 'PUT':
+                req = requests.put(f'https://api.spotify.com/v1/me/player/{self.command}', headers={'Accept': 'application/json', 'Content-Type': 'application/json', 'Authorization': f'Bearer {sh.tkn.authTk}'}, timeout = sh.requestsTimeout)
+        except Exception as err:
+            print(err)
+            sh.lcd.clear()
+            sh.lcd.message = 'Connection error\nCheck internet!'
+            GPIO.output(sh.receivedPin, GPIO.LOW)
+            return
 
         print(req)
         print(f'  with tk: {sh.tkn.authTk[0:10]}, exp: {sh.tkn.authExp}')
@@ -66,7 +73,15 @@ class shuffle:
 
         sh.tkn.check()
 
-        reply = requests.get('https://api.spotify.com/v1/me/player', headers={'Accept': 'application/json', 'Content-Type': 'application/json', 'Authorization': f'Bearer {sh.tkn.authTk}'})
+        try:
+            reply = requests.get('https://api.spotify.com/v1/me/player', headers={'Accept': 'application/json', 'Content-Type': 'application/json', 'Authorization': f'Bearer {sh.tkn.authTk}'}, timeout = sh.requestsTimeout)
+        except Exception as err:
+            print(err)
+            sh.lcd.clear()
+            sh.lcd.message = 'Connection error\nCheck internet!'
+            GPIO.output(sh.receivedPin, GPIO.LOW)
+            return
+
         state = reply.json()['shuffle_state']
 
         if state:
@@ -74,7 +89,14 @@ class shuffle:
         else:
             st = 'true'
 
-        req = requests.put(f'https://api.spotify.com/v1/me/player/shuffle?state={st}', headers={'Accept': 'application/json', 'Content-Type': 'application/json', 'Authorization': f'Bearer {sh.tkn.authTk}'})
+        try:
+            req = requests.put(f'https://api.spotify.com/v1/me/player/shuffle?state={st}', headers={'Accept': 'application/json', 'Content-Type': 'application/json', 'Authorization': f'Bearer {sh.tkn.authTk}'}, timeout = sh.requestsTimeout)
+        except Exception as err:
+            print(err)
+            sh.lcd.clear()
+            sh.lcd.message = 'Connection error\nCheck internet!'
+            GPIO.output(sh.receivedPin, GPIO.LOW)
+            return
 
         print(req)
         print(f'  with tk: {sh.tkn.authTk[0:10]}, exp: {sh.tkn.authExp}')
@@ -101,7 +123,14 @@ class transferHere:
         devName = "Stereo " + sh.usr.current()['name']
         devId = None
 
-        reply = requests.get('https://api.spotify.com/v1/me/player/devices', headers={'Accept': 'application/json', 'Content-Type': 'application/json', 'Authorization': f'Bearer {sh.tkn.authTk}'})
+        try:
+            reply = requests.get('https://api.spotify.com/v1/me/player/devices', headers={'Accept': 'application/json', 'Content-Type': 'application/json', 'Authorization': f'Bearer {sh.tkn.authTk}'}, timeout = sh.requestsTimeout)
+        except Exception as err:
+            print(err)
+            sh.lcd.clear()
+            sh.lcd.message = 'Connection error\nCheck internet!'
+            GPIO.output(sh.receivedPin, GPIO.LOW)
+            return
 
         for elem in reply.json()['devices']:
             if elem['name'] == devName:
@@ -113,7 +142,14 @@ class transferHere:
 
         data = '{\"device_ids\":[\"'+str(devId)+'\"]}'
 
-        req = requests.put('https://api.spotify.com/v1/me/player', data=data, headers={'Accept': 'application/json', 'Content-Type': 'application/json', 'Authorization': f'Bearer {sh.tkn.authTk}'})
+        try:
+            req = requests.put('https://api.spotify.com/v1/me/player', data=data, headers={'Accept': 'application/json', 'Content-Type': 'application/json', 'Authorization': f'Bearer {sh.tkn.authTk}'}, timeout = sh.requestsTimeout)
+        except Exception as err:
+            print(err)
+            sh.lcd.clear()
+            sh.lcd.message = 'Connection error\nCheck internet!'
+            GPIO.output(sh.receivedPin, GPIO.LOW)
+            return
 
         print(req)
         print(f'  with tk: {sh.tkn.authTk[0:10]}, exp: {sh.tkn.authExp}')
@@ -133,7 +169,14 @@ class onEvent:
         trackId = data[0]
         event = data[1]
 
-        reply = requests.get('https://api.spotify.com/v1/me/player', headers={'Accept': 'application/json', 'Content-Type': 'application/json', 'Authorization': f'Bearer {sh.tkn.authTk}'})
+        try: 
+            reply = requests.get('https://api.spotify.com/v1/me/player', headers={'Accept': 'application/json', 'Content-Type': 'application/json', 'Authorization': f'Bearer {sh.tkn.authTk}'}, timeout = sh.requestsTimeout)
+        except Exception as err:
+            print(err)
+            sh.lcd.clear()
+            sh.lcd.message = 'Connection error\nCheck internet!'
+            return
+
         try:
             shuffleState = reply.json()['shuffle_state']
 
@@ -149,7 +192,14 @@ class onEvent:
 
         if event in screenEvents:
             sh.tkn.check()
-            reply = requests.get(f'https://api.spotify.com/v1/tracks/{trackId}', headers={'Accept': 'application/json', 'Content-Type': 'application/json', 'Authorization': f'Bearer {sh.tkn.authTk}'})
+
+            try:
+                reply = requests.get(f'https://api.spotify.com/v1/tracks/{trackId}', headers={'Accept': 'application/json', 'Content-Type': 'application/json', 'Authorization': f'Bearer {sh.tkn.authTk}'}, timeout = sh.requestsTimeout)
+            except Exception as err:
+                print(err)
+                sh.lcd.clear()
+                sh.lcd.message = 'Connection error\nCheck internet!'
+                return
 
             title = reply.json()['name']
             artist = reply.json()['artists'][0]['name']
@@ -167,12 +217,29 @@ class onEvent:
 class like:
     def GET(self):
 
-        reply = requests.get('https://api.spotify.com/v1/me/player', headers={'Accept': 'application/json', 'Content-Type': 'application/json', 'Authorization': f'Bearer {sh.tkn.authTk}'})
+        GPIO.output(sh.receivedPin, GPIO.HIGH)
+
+        try:
+            reply = requests.get('https://api.spotify.com/v1/me/player', headers={'Accept': 'application/json', 'Content-Type': 'application/json', 'Authorization': f'Bearer {sh.tkn.authTk}'}, timeout = sh.requestsTimeout)
+        except Exception as err:
+            print(err)
+            sh.lcd.clear()
+            sh.lcd.message = 'Connection error\nCheck internet!'
+            GPIO.output(sh.receivedPin, GPIO.LOW)
+            return
+
         trackId = reply.json()['item']['uri']
 
         playlistId = sh.settings['Spotify']['playlistId']
 
-        reply = requests.post(f'https://api.spotify.com/v1/playlists/{playlistId}/tracks?uris={trackId}', headers={'Accept': 'application/json', 'Content-Type': 'application/json', 'Authorization': f'Bearer {sh.tkn.authTk}'})
+        try:
+            reply = requests.post(f'https://api.spotify.com/v1/playlists/{playlistId}/tracks?uris={trackId}', headers={'Accept': 'application/json', 'Content-Type': 'application/json', 'Authorization': f'Bearer {sh.tkn.authTk}'}, timeout = sh.requestsTimeout)
+        except Exception as err:
+            print(err)
+            sh.lcd.clear()
+            sh.lcd.message = 'Connection error\nCheck internet!'
+            GPIO.output(sh.receivedPin, GPIO.LOW)
+            return
 
         if reply.ok:
             sh.lcd.cursor_position(13,1)
@@ -180,6 +247,8 @@ class like:
         else:
             sh.lcd.clear()
             sh.lcd.message = 'Track NOT added\nto favourites'
+        
+        GPIO.output(sh.receivedPin, GPIO.LOW)
 
 class switchUser:
     def GET(self):

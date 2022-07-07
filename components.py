@@ -24,9 +24,14 @@ class tokens:
 
     def update(self):
 
-        req = post('https://accounts.spotify.com/api/token', data = {'grant_type':'refresh_token','refresh_token':self.refreshTk}, headers={'Authorization': f'Basic {self.base64Tk}'})
-        if req == None:
+        try:
+            req = requests.post('https://accounts.spotify.com/api/token', data = {'grant_type':'refresh_token','refresh_token':self.refreshTk}, headers={'Authorization': f'Basic {self.base64Tk}'}, timeout = sh.requestsTimeout)
+        except Exception as err:
+            print(err)
+            sh.lcd.clear()
+            sh.lcd.message = 'Connection error\nCheck internet!'
             return
+
         try:
             self.authTk = req.json()['access_token']
             expiresIn = req.json()['expires_in']
@@ -117,7 +122,13 @@ class user:
 
     def add(self, name, refTkn):
 
-        reply = requests.get('https://api.spotify.com/v1/me', headers={'Accept': 'application/json', 'Content-Type': 'application/json', 'Authorization': f'Bearer {sh.tkn.authTk}'})
+        try:
+            reply = requests.get('https://api.spotify.com/v1/me', headers={'Accept': 'application/json', 'Content-Type': 'application/json', 'Authorization': f'Bearer {sh.tkn.authTk}'}, timeout = sh.requestsTimeout)
+        except Exception as err:
+            print(err)
+            sh.lcd.clear()
+            sh.lcd.message = 'Connection error\nCheck internet!'
+            return
 
         curUsr = dict()
         curUsr['name'] = name
@@ -232,21 +243,3 @@ def generateNavbar(pageTitle, backUrl, additionalButtons = None) -> str:
     """
 
     return cont
-
-def post(url, data, headers):
-
-    reply = None
-    try:
-        reply = requests.post(url, data = data, headers = headers, timeout = sh.requestsTimeout)
-
-    except requests.Timeout as err:
-        sh.lcd.clear()
-        sh.lcd.message = 'Connection timeout\Check internet!'
-        print(err)
-
-    except requests.ConnectionError as err:
-        sh.lcd.clear()
-        sh.lcd.message = 'Connection error\nCheck internet!'
-        print(err)
-
-    return reply
