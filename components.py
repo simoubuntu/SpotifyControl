@@ -188,7 +188,7 @@ class libreSpotContainer:
         return
     
     def activate(self, curUsr):
-        self.instance = subprocess.Popen(["/usr/bin/librespot", "--name", f"Stereo {curUsr['name']}", "--device-type", "speaker", "--backend", "alsa", "--bitrate", "320", "--disable-audio-cache", "--enable-volume-normalisation", "--volume-ctrl", "linear", "--initial-volume", "100", "--username", curUsr['username'], "--password", curUsr['devPassword'], "--onevent", "/home/pi/SpotifyControl/onevent.sh"])
+        self.instance = subprocess.Popen(["/usr/bin/librespot", "--name", f"Stereo {curUsr['name']}", "--device-type", "speaker", "--backend", "alsa", "--bitrate", "320", "--disable-audio-cache", "--enable-volume-normalisation", "--volume-ctrl", "linear", "--initial-volume", "100", "--username", curUsr['username'], "--password", curUsr['devPassword'], "--onevent", sh.settings['Device']['onEventPath']])
         self.status = True
 
         return
