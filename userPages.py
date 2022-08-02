@@ -86,8 +86,7 @@ class authorized:
         except KeyError:
             return reply.text
 
-        sh.lcd.clear()
-        sh.lcd.message = 'Login completed!\nReady to play'
+        sh.disp.print('Login completed!','Ready to play')
 
         return content
 

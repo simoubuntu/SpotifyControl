@@ -1,6 +1,11 @@
 import requests
 import datetime
 import subprocess
+import time
+from multiprocessing import Process, Queue
+import board
+import digitalio
+import adafruit_character_lcd.character_lcd as characterlcd
 
 import shared as sh
 
@@ -243,3 +248,91 @@ def generateNavbar(pageTitle, backUrl, additionalButtons = None) -> str:
     """
 
     return cont
+
+class screenManager(Process):
+    def __init__(self):
+        super(screenManager, self).__init__()
+
+        # Modify this if you have a different sized character LCD
+        lcd_columns = 16
+        lcd_rows = 2
+
+        # compatible with all versions of RPI as of Jan. 2019
+        # v1 - v3B+
+        lcd_rs = digitalio.DigitalInOut(board.D22)
+        lcd_en = digitalio.DigitalInOut(board.D17)
+        lcd_d4 = digitalio.DigitalInOut(board.D25)
+        lcd_d5 = digitalio.DigitalInOut(board.D24)
+        lcd_d6 = digitalio.DigitalInOut(board.D23)
+        lcd_d7 = digitalio.DigitalInOut(board.D10)
+
+        # Initialise the lcd class
+        self.screen = characterlcd.Character_LCD_Mono(lcd_rs, lcd_en, lcd_d4, lcd_d5, lcd_d6, lcd_d7, lcd_columns, lcd_rows)
+
+        self.messages = Queue()
+
+    def activate(self):
+        if self.is_alive():
+            return
+        else:
+            self.start()
+
+    def run(self):
+
+        self.screen.clear()
+
+        while (True):
+            if not self.messages.empty():
+                msg = self.messages.get()
+                topLine = msg[0]
+                botLine = msg[1]
+
+                self.screen.clear()
+                self.screen.message = topLine + '\n' + botLine
+
+
+            if (len(topLine) > 16):
+                tl = topLine + '     ' + topLine[0:16]
+            else:
+                tl = topLine
+
+            if (len(botLine) > 16):
+                bl = botLine  + '     ' + botLine[0:16]
+            else:
+                bl = botLine
+
+            for i in range(max(len(topLine), len(botLine)) + 6):
+                if not self.messages.empty():
+                    break
+                
+                if (i <= len(tl) - 16) and (i <= len(bl) - 16):
+                    self.screen.message = tl[i:i+16] + '\n' + bl[i:i+16]
+                elif (i <= len(bl) - 16):
+                    self.screen.message = '\n' + bl[i:i+16]
+                elif (i <= len(tl) - 16):
+                    self.screen.message = tl[i:i+16]
+
+                time.sleep(0.15)
+            
+            time.sleep(0.15)
+
+    def splash(self, topLine, botLine = ''):
+        if self.is_alive():
+            return
+        
+        self.screen.clear()
+
+        self.screen.message = str(topLine) + '\n' + str(botLine)
+
+        return
+
+    def print(self, topLine, botLine = ''):
+        self.messages.put([str(topLine), str(botLine)])
+        return
+
+    def freeze(self, topLine, botLine = ''):
+        self.close()
+
+        self.splash(topLine, botLine)
+
+        return
