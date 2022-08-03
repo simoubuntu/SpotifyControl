@@ -327,6 +327,10 @@ class screenManager(Process):
         return
 
     def print(self, topLine, botLine = ''):
+        if not self.is_alive():
+            self.splash(topLine, botLine)
+            print("Screen manager not active. Backup method used.")
+
         self.messages.put([str(topLine), str(botLine)])
         return
 

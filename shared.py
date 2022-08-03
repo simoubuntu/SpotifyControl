@@ -6,7 +6,7 @@ import RPi.GPIO as GPIO
 
 import components as cm
 
-version = 'v0.3.9'
+version = 'v0.4'
 
 settings = configparser.ConfigParser()
 settings.read(os.path.join(sys.path[0], 'settings.conf'))
