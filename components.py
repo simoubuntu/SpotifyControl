@@ -288,7 +288,7 @@ class screenManager(Process):
                 botLine = msg[1]
 
                 self.screen.clear()
-                self.screen.message = topLine + '\n' + botLine
+                self.screen.message = topLine[0:16] + '\n' + botLine[0:16]
 
 
             if (len(topLine) > 16):
@@ -314,7 +314,7 @@ class screenManager(Process):
 
                 time.sleep(0.15)
             
-            time.sleep(0.15)
+            time.sleep(1)
 
     def splash(self, topLine, botLine = ''):
         if self.is_alive():
