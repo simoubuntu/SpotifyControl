@@ -271,6 +271,8 @@ class screenManager(Process):
 
         self.messages = Queue()
 
+        self.infoPage = 0
+
     def activate(self):
         if self.is_alive():
             return

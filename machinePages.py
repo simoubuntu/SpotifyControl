@@ -268,3 +268,44 @@ class switchUser:
 
         return redString + f'User switched to {name}'
 
+class userInfo:
+    def GET(self):
+        
+        pag = sh.disp.infoPage
+        
+        print('Ciao')
+
+        if pag == 0:
+            name = sh.usr.users[sh.usr.active]['name']
+            sh.disp.toast('User name:',name,2)
+            sh.disp.infoPage = 1
+
+        if pag == 1:
+            if (str(sh.usr.users[sh.usr.active]['username']) == 'None') | (str(sh.usr.users[sh.usr.active]['devPassword']) == 'None'):
+                txt = 'Smth wrong :('
+            else:
+                txt = 'All good! :)'
+
+            sh.disp.toast('Spotify creds:',txt,2)
+            sh.disp.infoPage = 2
+            
+        if pag == 2:
+            if str(sh.usr.users[sh.usr.active]['playlistId']) == 'None':
+                txt = 'Not set :('
+            else:
+                txt = 'Set! :)'
+
+            sh.disp.toast('Spotify creds:',txt,2)
+            sh.disp.infoPage = 3
+
+        if pag == 3:
+            sh.disp.print('IP address:',str(sh.settings['Device']['address']))
+            sh.disp.infoPage = 0
+
+        #  TODO
+        # if pag == 4:
+        #     Restore current track info
+
+        print(f'userInfo, page {pag}')
+
+        return f'userInfo, page {pag}'

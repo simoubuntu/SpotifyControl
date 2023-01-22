@@ -23,7 +23,8 @@ urls = (
   '/edituser', 'userPages.editUser',
   '/storeuserattribute', 'userPages.storeUserAttribute',
   '/deleteuser', 'userPages.deleteUser',
-  '/adduser', 'userPages.addUser'
+  '/adduser', 'userPages.addUser',
+  '/userinfo', 'machinePages.userInfo'
 )
 
 if __name__ == '__main__':
