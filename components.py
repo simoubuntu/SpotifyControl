@@ -314,7 +314,7 @@ class screenManager(Process):
 
                 time.sleep(0.15)
             
-            time.sleep(1)
+            time.sleep(0.15)
 
     def splash(self, topLine, botLine = ''):
         if self.is_alive():
