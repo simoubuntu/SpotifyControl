@@ -264,7 +264,7 @@ class switchUser:
 
         sh.librespot.activate(sh.usr.current())
 
-        sh.disp.print(f'User switched to\n{name}')
+        sh.disp.print('User switched to', name)
 
         return redString + f'User switched to {name}'
 

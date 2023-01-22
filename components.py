@@ -346,19 +346,39 @@ class screenManager(Process):
         return
 
     def print(self, topLine, botLine = ''):
+        # Manage old messages split with \n
+        if botLine == '':
+            splitString = topLine.split('\n')
+            topLine = splitString[0]
+            try:
+                botLine = splitString[1]
+            except IndexError:
+                botLine = ''
+
         if not self.is_alive():
             self.splash(topLine, botLine)
             print("Screen manager not active. Backup method used.")
+        else:
+            self.messages.put([str(topLine), str(botLine), 0])
 
-        self.messages.put([str(topLine), str(botLine), 0])
         return
 
     def toast(self, topLine, botLine = '', duration = 1):
+        # Manage old messages split with \n
+        if botLine == '':
+            splitString = topLine.split('\n')
+            topLine = splitString[0]
+            try:
+                botLine = splitString[1]
+            except IndexError:
+                botLine = ''
+
         if not self.is_alive():
             self.splash(topLine, botLine)
             print("Screen manager not active. Backup method used.")
+        else:
+            self.messages.put([str(topLine), str(botLine), duration])
 
-        self.messages.put([str(topLine), str(botLine), duration])
         return
 
     def freeze(self, topLine, botLine = ''):
