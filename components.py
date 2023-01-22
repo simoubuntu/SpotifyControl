@@ -280,16 +280,33 @@ class screenManager(Process):
     def run(self):
 
         self.screen.clear()
+        toastEnded = False
 
         while (True):
             if not self.messages.empty():
                 msg = self.messages.get()
-                topLine = msg[0]
-                botLine = msg[1]
+                
+                #Manage the toast
+                if msg[2] > 0:
+                    self.screen.clear()
+                    self.screen.message = msg[0][0:16] + '\n' + msg[1][0:16]
+                    time.sleep(msg[2])
+                    toastEnded = True
 
+                elif msg[2] == 0:
+                    topLine = msg[0]
+                    botLine = msg[1]
+
+                    self.screen.clear()
+                    self.screen.message = topLine[0:16] + '\n' + botLine[0:16]
+
+                else:
+                    raise ValueError("Time duration for toasts must be greater than zero.")
+
+            if toastEnded:
                 self.screen.clear()
                 self.screen.message = topLine[0:16] + '\n' + botLine[0:16]
-
+                toastEnded = False
 
             if (len(topLine) > 16):
                 tl = topLine + '     ' + topLine[0:16]
@@ -331,7 +348,15 @@ class screenManager(Process):
             self.splash(topLine, botLine)
             print("Screen manager not active. Backup method used.")
 
-        self.messages.put([str(topLine), str(botLine)])
+        self.messages.put([str(topLine), str(botLine), 0])
+        return
+
+    def toast(self, topLine, botLine = '', duration = 1):
+        if not self.is_alive():
+            self.splash(topLine, botLine)
+            print("Screen manager not active. Backup method used.")
+
+        self.messages.put([str(topLine), str(botLine), duration])
         return
 
     def freeze(self, topLine, botLine = ''):

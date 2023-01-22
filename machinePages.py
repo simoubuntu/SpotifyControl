@@ -13,12 +13,17 @@ class player:
 
     def GET(self):
 
-        screenList = ['next', 'previous']
+        # Screen list is split in toast and print lists.
+        printList = ['next']
+        toastList = ['previous']
 
         GPIO.output(sh.receivedPin, GPIO.HIGH)
 
-        if self.command in screenList:
+        if self.command in printList:
             sh.disp.print(self.message)
+
+        if self.command in toastList:
+            sh.disp.toast(self.message)
 
         sh.tkn.check()
 
@@ -232,12 +237,9 @@ class like:
             return
 
         if reply.ok:
-            # TODO Trovare un nuovo modo di dare conferma
-            pass
-            # sh.lcd.cursor_position(13,1)
-            # sh.lcd.message = ' <3'
+            sh.disp.toast('Track added','to favourites!',3)
         else:
-            sh.disp.print('Track NOT added','to favourites')
+            sh.disp.toast('Track NOT added','to favourites',5)
         
         GPIO.output(sh.receivedPin, GPIO.LOW)
 
